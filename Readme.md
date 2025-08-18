@@ -1,6 +1,6 @@
 # License Plate Number Recognition (LPNR)
 
-This project is a License Plate Number Recognition (LPNR) system built as part of a Pattern Recognition project.
+This project is a License Plate Number Recognition (LPNR) system.
 It detects license plates from vehicle images, extracts the text using OCR, and fetches vehicle details via an API.
 
 ---
