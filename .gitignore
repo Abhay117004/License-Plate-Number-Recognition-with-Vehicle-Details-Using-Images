@@ -10,3 +10,4 @@ runs/
 .vscode/
 .idea/
 .env
+yolov8n.pt
