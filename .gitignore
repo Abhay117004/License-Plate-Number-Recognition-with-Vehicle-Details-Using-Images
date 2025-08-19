@@ -8,5 +8,6 @@ input_images/
 cropped_images/
 runs/
 .vscode/
+yolov8n.pt 
 .idea/
 .env
