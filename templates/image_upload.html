@@ -1,236 +1,286 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car OCR & Vehicle Lookup</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .upload-area.drag-over { border-color:#3b82f6;background:#eff6ff; }
-        .loader {
-            width: 64px;
-            height: 64px;
-            border: 6px solid #d1d5db;
-            border-bottom-color: #3b82f6;
-            border-radius: 50%;
-            display: inline-block;
-            animation: rotation 1s linear infinite;
-        }
-        @keyframes rotation {0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehicle Lookup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Poppins', sans-serif; }
+    .upload-area.drag-over { border-color: #3b82f6; background-color: #e0f2fe; }
+    .loader-spinner { width: 56px; height: 56px; border: 6px solid #e2e8f0; border-bottom-color: #1e40af; border-radius: 50%; animation: rotation 1s linear infinite; }
+    @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes toast-in { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes toast-out { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+    .toast-in { animation: toast-in 0.5s forwards; }
+    .toast-out { animation: toast-out 0.5s forwards; }
+    .pulse-button { animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(29, 78, 216, 0); } }
+  </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-6">
+<body class="bg-slate-100 text-slate-800 antialiased">
+  <header class="w-full bg-white shadow-md border-b border-slate-200 px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-slate-900">Vehicle Look Up</h1>
+    </div>
+  </header>
 
-<div class="w-full max-w-6xl bg-white rounded-2xl shadow-lg overflow-hidden">
-    <header class="bg-blue-600 text-white p-8 text-center">
-        <h1 class="text-4xl font-bold">Car OCR & Vehicle Lookup</h1>
-        <p class="mt-2 text-blue-200 text-lg">Upload an image to extract the number plate and fetch car details</p>
-    </header>
-
-    <main class="p-8 md:p-10 grid md:grid-cols-2 gap-10">
-        <!-- Upload & Preview -->
-        <div class="flex flex-col space-y-8">
-            <h2 class="text-2xl font-semibold text-gray-800 border-b pb-2">1. Upload Image</h2>
-
-            <label id="upload-area" for="image-input"
-                   class="upload-area relative flex flex-col items-center justify-center w-full h-80 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-50">
-                <div id="upload-instructions" class="flex flex-col items-center text-gray-500">
-                    <svg class="w-14 h-14 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                    </svg>
-                    <p class="font-semibold">Click to upload or drag & drop</p>
-                    <p class="text-sm">PNG, JPG, or WEBP</p>
-                </div>
-                <div id="image-preview-container" class="hidden absolute inset-0 p-2">
-                    <img id="image-preview" src="#" alt="Preview" class="w-full h-full object-contain rounded-md"/>
-                </div>
-            </label>
-            <input type="file" id="image-input" class="hidden" accept="image/png,image/jpeg,image/webp">
-
-            <div class="flex items-center space-x-6">
-                <button id="upload-btn" class="flex-1 bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400" disabled>Upload</button>
-                <button id="ocr-btn" class="flex-1 bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 disabled:bg-gray-400" disabled>Run OCR</button>
-                <button id="clear-btn" class="flex-1 bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700">Clear</button>
-            </div>
+  <div id="app" class="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
+    <aside class="w-full lg:w-1/3 xl:w-1/4 bg-white border-r border-slate-200 flex flex-col p-8 space-y-8 shadow-lg">
+      <h2 class="text-xl font-semibold text-slate-700">1. Upload Vehicle Image</h2>
+      <label id="upload-area" for="image-input" class="upload-area relative flex flex-col items-center justify-center w-full min-h-[16rem] bg-white border-2 border-dashed border-slate-300 rounded-2xl cursor-pointer transition-all duration-300 hover:border-blue-600 hover:bg-blue-50">
+        <div id="upload-instructions" class="flex flex-col items-center text-slate-500 text-center p-4">
+          <svg class="w-14 h-14 mb-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          <p class="font-semibold text-lg">Click to browse or drag & drop</p>
+          <p class="text-sm mt-2 text-slate-400">Supported formats: JPG, PNG, WEBP</p>
         </div>
-
-        <!-- OCR Results -->
-        <div class="flex flex-col space-y-8">
-            <h2 class="text-2xl font-semibold text-gray-800 border-b pb-2">2. Vehicle Details</h2>
-
-            <div class="relative w-full h-80 bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-auto">
-                <div id="loader" class="loader hidden absolute inset-0 flex items-center justify-center"></div>
-                <div id="results" class="text-sm text-gray-700 space-y-2">
-                    <p class="text-gray-400" id="placeholder">Upload an image and run OCR to see results...</p>
-                </div>
-            </div>
+        <div id="image-preview-container" class="hidden absolute inset-0 p-4">
+          <img id="image-preview" src="#" alt="Image Preview" class="w-full h-full object-contain rounded-xl border border-slate-200" />
         </div>
+      </label>
+      <input type="file" id="image-input" class="hidden" accept="image/png,image/jpeg,image/webp" />
+
+      <div class="space-y-4">
+        <button id="ocr-btn" disabled class="w-full flex items-center justify-center gap-2 bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl hover:bg-blue-800 disabled:bg-slate-400 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-3 3m0 0l-3-3m3 3V9m8.25 3A6.75 6.75 0 1112 5.25a6.75 6.75 0 017.25 6.75z"/></svg>
+          <span>Find Vehicle Details</span>
+        </button>
+        <button id="clear-btn" class="w-full bg-slate-200 text-slate-700 font-semibold py-4 px-6 rounded-xl hover:bg-slate-300 disabled:bg-slate-400 transition-all duration-300">Clear Image</button>
+      </div>
+    </aside>
+
+    <main class="flex-grow bg-slate-50 p-8 overflow-y-auto">
+      <h2 class="text-2xl font-bold text-slate-800 mb-6">2. Vehicle Information</h2>
+      <div id="results-container" class="relative w-full min-h-[calc(100vh-180px)] bg-white border border-slate-200 rounded-2xl p-8 shadow-xl">
+        <div id="loader-overlay" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm items-center justify-center z-10 rounded-2xl">
+          <div class="flex flex-col items-center">
+            <div class="loader-spinner"></div>
+            <p class="mt-4 text-slate-600 font-medium text-lg">Analyzing image, please wait...</p>
+          </div>
+        </div>
+        <div id="results-content">
+          <div id="placeholder" class="flex flex-col items-center justify-center h-full text-center text-slate-500 py-16">
+            <svg class="w-24 h-24 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.001c-3.13 0-5.67 2.54-5.67 5.67s2.54 5.67 5.67 5.67 5.67-2.54 5.67-5.67-2.54-5.67-5.67-5.67zM12 9a3 3 0 100 6 3 3 0 000-6zM15 12h-3v3"/></svg>
+            <h3 class="mt-6 text-xl font-semibold text-slate-700">Get Instant Vehicle Details</h3>
+            <p class="mt-2 max-w-lg text-slate-500">Our advanced system uses OCR to scan the number plate and retrieve public vehicle information.</p>
+          </div>
+        </div>
+      </div>
     </main>
-</div>
+  </div>
 
-<script>
+  <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-3"></div>
+
+  <script>
     const uploadArea = document.getElementById('upload-area');
     const imageInput = document.getElementById('image-input');
     const uploadInstructions = document.getElementById('upload-instructions');
     const imagePreviewContainer = document.getElementById('image-preview-container');
     const imagePreview = document.getElementById('image-preview');
-    const uploadBtn = document.getElementById('upload-btn');
     const ocrBtn = document.getElementById('ocr-btn');
     const clearBtn = document.getElementById('clear-btn');
-    const loader = document.getElementById('loader');
-    const results = document.getElementById('results');
+    const loaderOverlay = document.getElementById('loader-overlay');
+    const resultsContent = document.getElementById('results-content');
     const placeholder = document.getElementById('placeholder');
+    const toastContainer = document.getElementById('toast-container');
 
     let currentFile = null;
-
-    // File selection
-    imageInput.addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (file) handleFile(file);
-    });
-
-    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
-    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
-    uploadArea.addEventListener('drop', e => {
-        e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) {
-            imageInput.files = e.dataTransfer.files;
-            handleFile(file);
-        }
-    });
-
-    uploadBtn.addEventListener('click', () => {
-        if (!currentFile) return;
-        const formData = new FormData();
-        formData.append('image', currentFile);
-
-        setLoading(true);
-        fetch('/upload', { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(data => {
-                setLoading(false);
-                if (data.message) {
-                    placeholder.style.display = 'none';
-                    results.innerHTML = `<p class="text-green-700">${data.message}</p>`;
-                    ocrBtn.disabled = false;
-                }
-            })
-            .catch(err => {
-                setLoading(false);
-                results.innerHTML = `<p class="text-red-600">Error uploading image.</p>`;
-                console.error(err);
-            });
-    });
-
-    ocrBtn.addEventListener('click', () => {
-        setLoading(true);
-        results.innerHTML = '';
-        placeholder.style.display = 'block';
-
-        fetch('/run-ocr', { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-                setLoading(false);
-                placeholder.style.display = 'none';
-                let output = '';
-                let plate = "N/A";
-                let details = {};
-
-                if (data.message) {
-                    const msg = data.message;
-                    const plateMatch = msg.match(/[A-Z]{2}\d{1,2}[A-Z]{1,3}\d{3,4}/);
-                    if (plateMatch) plate = plateMatch[0];
-
-                    const jsonStart = msg.indexOf('{', msg.indexOf("[INFO]"));
-                    if (jsonStart !== -1) {
-                        const jsonString = msg.substring(jsonStart).trim();
-                        try {
-                            const parsed = JSON.parse(jsonString);
-                            details = parsed?.result?.extraction_output || {};
-                        } catch (e) { console.error("Failed to parse JSON:", e); }
-                    }
-                }
-
-                output += `
-                    <div class="mb-4 p-4 bg-white border rounded-lg shadow">
-                        <h2 class="text-xl font-bold text-blue-700 mb-2">Vehicle Summary</h2>
-                        <p><strong>Plate:</strong> ${plate}</p>
-                        <p><strong>Owner:</strong> ${details.owner_name || 'N/A'}</p>
-                        <p><strong>Model:</strong> ${details.manufacturer_model || 'N/A'}</p>
-                        <p><strong>Color:</strong> ${details.colour || 'N/A'}</p>
-                        <p><strong>Fuel:</strong> ${details.fuel_type || 'N/A'}</p>
-                        <p><strong>Registration Date:</strong> ${details.registration_date || 'N/A'}</p>
-                        <p><strong>Insurance Validity:</strong> ${details.insurance_validity || 'N/A'}</p>
-                        <p><strong>Registered Place:</strong> ${details.registered_place || 'N/A'}</p>
-                        <p><strong>Status:</strong> ${details.status_verification || 'N/A'}</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-700 mb-2">Full API Response</h3>
-                        <pre class="whitespace-pre-wrap text-gray-800 text-sm bg-gray-100 p-3 rounded-lg overflow-x-auto">
-${data.message}
-                        </pre>
-                    </div>
-                `;
-
-                results.innerHTML = output;
-            })
-            .catch(err => {
-                setLoading(false);
-                results.innerHTML = `<p class="text-red-600">Error: ${err}</p>`;
-                console.error(err);
-            });
-    });
-
-    clearBtn.addEventListener('click', () => {
-        currentFile = null;
-        imageInput.value = '';
-        uploadInstructions.style.display = 'flex';
-        imagePreviewContainer.style.display = 'none';
-        imagePreview.src = '#';
-        uploadBtn.disabled = true;
-        ocrBtn.disabled = true;
-        placeholder.style.display = 'block';
-        results.innerHTML = '';
-        results.appendChild(placeholder);
-
-        fetch('/clear-images', { method: 'POST' })
-            .then(res => res.json())
-            .then(data => { showPopup(data.message || "Cleared successfully", "success"); })
-            .catch(err => { console.error("Failed to clear images:", err); showPopup("Failed to clear images", "error"); });
-    });
-
-    function showPopup(message, type = "success") {
-        const popup = document.createElement('div');
-        popup.textContent = message;
-        popup.className = `fixed top-5 right-5 px-4 py-2 rounded shadow-lg z-50 text-white 
-            ${type === "success" ? "bg-green-600" : "bg-red-600"}`;
-        document.body.appendChild(popup);
-        setTimeout(() => popup.remove(), 3000);
-    }
+    let lastUploadedFilename = null;
 
     function handleFile(file) {
-        currentFile = file;
-        const reader = new FileReader();
-        reader.onload = e => {
-            imagePreview.src = e.target.result;
-            uploadInstructions.style.display = 'none';
-            imagePreviewContainer.style.display = 'block';
-            uploadBtn.disabled = false;
-            ocrBtn.disabled = true;
-        };
-        reader.readAsDataURL(file);
+      if (!file || !file.type.startsWith('image/')) { showToast('Please select a valid image file (PNG, JPG, WEBP).', 'error'); return; }
+      currentFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.src = e.target.result;
+        uploadInstructions.style.display = 'none';
+        imagePreviewContainer.style.display = 'block';
+        ocrBtn.disabled = false;
+        lastUploadedFilename = null;
+        ocrBtn.classList.add('pulse-button');
+      };
+      reader.readAsDataURL(file);
     }
 
-    function setLoading(state) {
-        loader.classList.toggle('hidden', !state);
-        uploadBtn.disabled = state;
-        ocrBtn.disabled = state;
+    function setLoadingState(isLoading) {
+      if (isLoading) {
+        loaderOverlay.classList.remove('hidden');
+        loaderOverlay.classList.add('flex');
+      } else {
+        loaderOverlay.classList.add('hidden');
+        loaderOverlay.classList.remove('flex');
+      }
+      ocrBtn.disabled = isLoading;
+      clearBtn.disabled = isLoading;
+      if (isLoading) ocrBtn.classList.remove('pulse-button');
     }
-</script>
+
+    function resetUI() {
+      currentFile = null;
+      lastUploadedFilename = null;
+      imageInput.value = '';
+      uploadInstructions.style.display = 'flex';
+      imagePreviewContainer.style.display = 'none';
+      imagePreview.src = '#';
+      ocrBtn.disabled = true;
+      resultsContent.innerHTML = '';
+      resultsContent.appendChild(placeholder);
+      ocrBtn.classList.remove('pulse-button');
+      fetch('/clear-images', { method: 'POST' })
+        .then((res) => res.json())
+        .then((data) => showToast(data.message || 'Cleared successfully.', 'success'))
+        .catch(() => showToast('Failed to clear server images.', 'error'));
+    }
+
+    function safeParseJSON(str) {
+      try { return JSON.parse(str); } catch { return null; }
+    }
+
+    function extractJsonFromMessage(msg) {
+      if (!msg || typeof msg !== 'string') return null;
+      const first = msg.indexOf('{');
+      const last = msg.lastIndexOf('}');
+      if (first === -1 || last === -1 || last < first) return null;
+      const slice = msg.slice(first, last + 1).trim();
+      const parsed = safeParseJSON(slice);
+      return parsed || null;
+    }
+
+    function normalizeDetails(payload) {
+      if (!payload) return {};
+      if (payload.rc_vehicle_no || payload.rc_version) return payload;
+      if (payload.result && payload.result.extraction_output) return payload.result.extraction_output;
+      if (payload.data && (payload.data.rc_vehicle_no || payload.data.rc_version)) return payload.data;
+      return payload;
+    }
+
+    function renderResults(data) {
+      let plate = 'N/A';
+      let details = {};
+      let rawForDisplay = '';
+
+      if (data && typeof data === 'object' && !('message' in data)) {
+        details = normalizeDetails(data);
+        rawForDisplay = JSON.stringify(data, null, 2);
+      } else {
+        const msg = typeof data?.message === 'string' ? data.message : '';
+        rawForDisplay = msg || '';
+        if (msg) {
+          const plateMatch = msg.match(/[A-Z]{2}[ -]?[0-9]{1,2}[ -]?[A-Z]{1,3}[ -]?[0-9]{1,4}/);
+          if (plateMatch) plate = plateMatch[0].replace(/\s+/g, '');
+          const extracted = extractJsonFromMessage(msg);
+          if (extracted) details = normalizeDetails(extracted);
+        }
+      }
+
+      plate = details.rc_vehicle_no || plate || 'N/A';
+
+      const out = {
+        plate: plate || 'N/A',
+        owner: details.rc_owner_name || details.owner_name || 'N/A',
+        makeModel: [details.rc_maker_desc, details.rc_maker_model].filter(Boolean).join(' ') || details.manufacturer_model || 'N/A',
+        colour: details.colour || details.rc_color || 'N/A',
+        fuel: details.rc_fuel_desc || details.fuel_type || 'N/A',
+        regDate: details.rc_regn_dt || details.registration_date || 'N/A',
+        insuranceUntil: details.rc_insurance_upto || details.insurance_validity || 'N/A',
+        registeredAt: details.rc_registered_at || details.registered_place || 'N/A',
+        status: details.rc_status || details.status_verification || 'N/A',
+        statusAsOn: details.rc_status_as_on || null
+      };
+
+      const outputHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="lg:col-span-1 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-2xl font-bold text-blue-700 mb-6 border-b pb-2 border-blue-200">Vehicle Summary</h3>
+            <div class="space-y-4 text-sm">
+              ${createDetailRow('Plate Number', out.plate, false, 'text-xl font-bold text-blue-900')}
+              ${createDetailRow('Owner Name', out.owner)}
+              ${createDetailRow('Make & Model', out.makeModel)}
+              ${createDetailRow('Fuel Type', out.fuel)}
+              ${createDetailRow('Registration', out.regDate)}
+              ${createDetailRow('Insurance Until', out.insuranceUntil)}
+              ${createDetailRow('Registered At', out.registeredAt)}
+              ${out.statusAsOn ? createDetailRow('Status As On', out.statusAsOn) : ''}
+            </div>
+          </div>
+          <div class="lg:col-span-2">
+            <h3 class="text-xl font-semibold text-slate-700 mb-4">Full Terminal Response</h3>
+            <pre class="whitespace-pre-wrap text-xs text-slate-700 bg-slate-100 p-6 rounded-xl border border-slate-200 max-h-[600px] overflow-auto leading-relaxed">${rawForDisplay || 'No response data.'}</pre>
+          </div>
+        </div>`;
+      resultsContent.innerHTML = outputHTML;
+    }
+
+    function createDetailRow(label, value, isStatus = false, valueClass = '') {
+      const val = (value ?? 'N/A');
+      const valStr = typeof val === 'string' ? val : JSON.stringify(val);
+      let statusClass = '';
+      if (isStatus) {
+        const norm = String(valStr).toLowerCase();
+        if (norm === 'active') statusClass = 'bg-green-100 text-green-800';
+        else if (norm !== 'n/a') statusClass = 'bg-red-100 text-red-800';
+      }
+      return `
+        <div class="flex justify-between items-center py-2">
+          <span class="font-medium text-slate-600">${label}:</span>
+          <span class="font-semibold text-slate-900 ${statusClass ? `px-3 py-1 rounded-full text-xs font-bold ${statusClass}` : valueClass}">${valStr || 'N/A'}</span>
+        </div>`;
+    }
+
+    function showToast(message, type = 'success') {
+      const bgColor = type === 'success' ? 'bg-green-600' : 'bg-red-600';
+      const icon = type === 'success'
+        ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
+        : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+      const toast = document.createElement('div');
+      toast.className = `flex items-center gap-3 text-white px-4 py-3 rounded-lg shadow-xl toast-in ${bgColor}`;
+      toast.innerHTML = `${icon}<span>${message}</span>`;
+      toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('toast-in');
+        toast.classList.add('toast-out');
+        toast.addEventListener('animationend', () => toast.remove());
+      }, 4000);
+    }
+
+    imageInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) handleFile(file); });
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('drag-over');
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+
+    clearBtn.addEventListener('click', resetUI);
+
+    document.getElementById('ocr-btn').addEventListener('click', async () => {
+      if (!currentFile) { showToast('No file selected for analysis.', 'error'); return; }
+      setLoadingState(true);
+      resultsContent.innerHTML = '';
+      try {
+        if (lastUploadedFilename !== currentFile.name) {
+          const formData = new FormData();
+          formData.append('image', currentFile);
+          const uploadResponse = await fetch('/upload', { method: 'POST', body: formData });
+          if (!uploadResponse.ok) throw new Error('Image upload failed.');
+          const uploadData = await uploadResponse.json();
+          showToast(uploadData.message || 'Image uploaded successfully.', 'success');
+          lastUploadedFilename = currentFile.name;
+        }
+        const ocrResponse = await fetch('/run-ocr', { method: 'POST' });
+        if (!ocrResponse.ok) throw new Error('OCR process failed.');
+        const ocrData = await ocrResponse.json();
+        renderResults(ocrData);
+      } catch (error) {
+        resultsContent.innerHTML = `<p class="text-red-600 font-medium text-center">${error.message}</p>`;
+        showToast('An error occurred during analysis.', 'error');
+      } finally {
+        setLoadingState(false);
+      }
+    });
+  </script>
 </body>
 </html>

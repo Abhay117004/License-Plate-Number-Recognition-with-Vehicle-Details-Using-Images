@@ -1,35 +1,30 @@
-import http.client
+import requests
 import json
-from ocr import extract_plates
 import os
+from ocr import extract_plates
 
 
 def get_vehicle_details(plate_number):
-    conn = http.client.HTTPSConnection(
-        "vehicle-rc-verification-advance.p.rapidapi.com")
-
-    payload = json.dumps({
-        "rcnumber": plate_number
-    })
-
+    url = "https://rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com/api/rc-vehicle/search-data"
+    querystring = {"vehicle_no": plate_number}
     headers = {
-        'x-rapidapi-key': os.getenv("RAPIDAPI_KEY"),
-        'x-rapidapi-host': "vehicle-rc-verification-advance.p.rapidapi.com",
-        'Content-Type': "application/json"
+        "x-rapidapi-key": os.getenv("RAPIDAPI_KEY"),
+        "x-rapidapi-host": "rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com"
     }
 
-    conn.request("POST", "/Getrcfulldetails", payload, headers)
-    res = conn.getresponse()
-    data = res.read()
-
     try:
-        return json.loads(data.decode("utf-8"))
+        response = requests.get(url, headers=headers,
+                                params=querystring, timeout=10)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
     except json.JSONDecodeError:
-        return {"error": "Invalid response from API", "raw": data.decode("utf-8")}
+        return {"error": "Invalid response", "raw": response.text}
 
 
 if __name__ == "__main__":
-    print("Fetching vehicle details from API...")
+    print("Fetching vehicle details from GET API...")
     plates = extract_plates()
 
     if not plates:
