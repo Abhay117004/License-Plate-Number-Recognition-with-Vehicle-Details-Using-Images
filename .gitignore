@@ -11,3 +11,4 @@ runs/
 yolov8n.pt 
 .idea/
 .env
+yolov8n.pt
