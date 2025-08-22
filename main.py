@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 import os
 import subprocess
 import sys
@@ -16,7 +16,29 @@ os.makedirs(CROPPED_FOLDER, exist_ok=True)
 
 @app.route('/')
 def home():
-    return render_template('image_upload.html')
+    return render_template('index.html')
+
+
+# Add static file serving for CSS and JS files
+@app.route('/styles.css')
+def serve_css():
+    return send_from_directory('templates', 'styles.css')
+
+
+@app.route('/script.js')
+def serve_js():
+    return send_from_directory('templates', 'script.js')
+
+
+# Generic static file serving (optional - covers any other static files)
+@app.route('/<path:filename>')
+def serve_static(filename):
+    # Only serve specific file types for security
+    allowed_extensions = ['.css', '.js',
+                          '.png', '.jpg', '.jpeg', '.gif', '.ico']
+    if any(filename.lower().endswith(ext) for ext in allowed_extensions):
+        return send_from_directory('.', filename)
+    return "File not found", 404
 
 
 @app.route('/upload', methods=['POST'])
