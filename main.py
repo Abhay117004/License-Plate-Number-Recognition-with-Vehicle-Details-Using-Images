@@ -30,14 +30,11 @@ def serve_js():
     return send_from_directory('templates', 'script.js')
 
 
-# Generic static file serving (optional - covers any other static files)
 @app.route('/<path:filename>')
-def serve_static(filename):
-    # Only serve specific file types for security
-    allowed_extensions = ['.css', '.js',
-                          '.png', '.jpg', '.jpeg', '.gif', '.ico']
-    if any(filename.lower().endswith(ext) for ext in allowed_extensions):
-        return send_from_directory('.', filename)
+def serve_uploaded_file(filename):
+    allowed_extensions = ('.png', '.jpg', '.jpeg', '.webp')
+    if filename.lower().endswith(allowed_extensions):
+        return send_from_directory('uploads', filename)
     return "File not found", 404
 
 
