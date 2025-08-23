@@ -33,21 +33,22 @@ It detects license plates from vehicle images, extracts the text using OCR, and 
 
 ```
 .
-├── assets/                # Screenshots for README
-├── input_images/          # Input images for testing
-├── cropped_images/        # Detected and cropped plates
-├── templates/             # Frontend templates (index.html, scripts, styles)
-├── app.py                 # Flask app entry point
-├── main.py                # Core detection and OCR pipeline
-├── preprocess_plate.py    # Plate preprocessing & cropping logic
-├── ocr.py                 # OCR integration with Moondream API
-├── api_call.py            # RapidAPI vehicle info integration
-├── clear_images.py        # Utility to clear previous runs
-├── best.pt                # Custom-trained YOLOv8 model weights
-├── requirements.txt       # Python dependencies
-├── setup.py               # Setup script
-├── .env                   # API keys (not committed)
-└── .gitignore             # Ignore unnecessary files
+├── assets/                  # Screenshots or reference images for README
+├── input_images/            # Uploaded input images for testing
+├── cropped_images/          # YOLO-detected and cropped plates
+├── templates/               # Frontend templates (index.html, CSS, JS)
+├── static/                  # Static assets like CSS/JS (optional, move from templates)
+├── pipeline.py              # Runs the full OCR pipeline (setup → preprocess → OCR → API)
+├── main.py                  # Flask web app / main entry point
+├── preprocess_plate.py      # Plate preprocessing & cropping logic
+├── ocr.py                   # OCR integration with Moondream API
+├── api_call.py              # RapidAPI vehicle info integration
+├── clear_images.py          # Utility to clear input and cropped images
+├── best.pt                  # Custom-trained YOLOv8 model weights
+├── requirements.txt         # Python dependencies
+├── env_setup.py             # Setup pipeline environment 
+├── .env                     # API keys (not committed to Git)
+└── .gitignore               # Ignore unnecessary files
 ```
 
 ---

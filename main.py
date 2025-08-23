@@ -19,7 +19,6 @@ def home():
     return render_template('index.html')
 
 
-# Add static file serving for CSS and JS files
 @app.route('/styles.css')
 def serve_css():
     return send_from_directory('templates', 'styles.css')

@@ -1,7 +1,7 @@
 import os
 import glob
 import base64
-from setup import cropped_images, client
+from env_setup import cropped_images, client
 
 
 def extract_plates():

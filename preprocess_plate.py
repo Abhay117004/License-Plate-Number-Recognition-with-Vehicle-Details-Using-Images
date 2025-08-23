@@ -1,7 +1,7 @@
 import os
 import cv2
 import glob
-from setup import model, input_folder, cropped_images
+from env_setup import model, input_folder, cropped_images
 
 
 def preprocess_plate(image):
