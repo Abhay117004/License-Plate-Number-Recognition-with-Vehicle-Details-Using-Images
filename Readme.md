@@ -2,7 +2,7 @@
 
 ![Homepage](assets/SS1.png)
 
-A License Plate Number Recognition (LPNR) system built for academic purposes.
+A License Plate Number Recognition (LPNR) system.
 It detects license plates from vehicle images, extracts the text using OCR, and retrieves detailed vehicle information through API integration — all via a simple browser-based interface.
 
 ---
@@ -11,7 +11,7 @@ It detects license plates from vehicle images, extracts the text using OCR, and 
 
 * **YOLOv8n** model custom-trained on the Indian Vehicle Dataset for license plate detection.
 * **OpenCV preprocessing** to crop and enhance detected plates before OCR.
-* **Moondream VLM OCR API** for accurate plate number extraction.
+* **Moondream VLM OCR** for accurate plate number extraction.
 * **RapidAPI integration** for retrieving vehicle details (RTO, insurance, registration, etc.).
 * Lightweight **Flask web app** with a clean, modern UI.
 * Runs locally on **CPU-only setups** (not optimized for performance since OCR and vehicle info are handled via APIs).
@@ -100,7 +100,7 @@ RAPIDAPI_KEY=your_rapidapi_key_here
 1. Start the Flask app:
 
 ```bash
-python app.py
+python main.py
 ```
 
 2. Open your browser and visit:
