@@ -110,7 +110,7 @@ http://127.0.0.1:5000
 
 3. Upload a vehicle image, click **Analyze Vehicle**, and view the results.
 
-![Results Page](assets/SS2.png)
+![Results Page](assets/SS.png)
 
 ---
 
