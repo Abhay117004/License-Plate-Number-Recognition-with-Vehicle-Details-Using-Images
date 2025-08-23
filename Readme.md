@@ -1,105 +1,121 @@
-# License Plate Number Recognition (LPNR)
+# VehicleLookup – License Plate Recognition (LPNR)
 
-This project is a License Plate Number Recognition (LPNR) system.
-It detects license plates from vehicle images, extracts the text using OCR, and fetches vehicle details via an API.
+![Homepage](assets/SS1.png)
 
----
-
-## Features
-
-* YOLOv8n model custom-trained on the [Indian Vehicle Dataset (Kaggle)](https://www.kaggle.com/datasets/saisirishan/indian-vehicle-dataset) for license plate detection.
-* OpenCV preprocessing to crop and enhance detected plates before OCR.
-* Moondream VLM OCR API to extract the plate number text from cropped images.
-* RapidAPI integration to retrieve vehicle details for Indian vehicles using the extracted number.
-* Flask web app to upload an image, process it, and view results in the browser.
+A License Plate Number Recognition (LPNR) system built for academic purposes.
+It detects license plates from vehicle images, extracts the text using OCR, and retrieves detailed vehicle information through API integration — all via a simple browser-based interface.
 
 ---
 
-## Tech Stack
+## **Features**
 
-* YOLOv8n (`ultralytics`) – license plate detection
-* OpenCV – image preprocessing and cropping
-* Moondream OCR API – text extraction from plates
-* RapidAPI – vehicle details retrieval
-* Flask – web interface
+* **YOLOv8n** model custom-trained on the Indian Vehicle Dataset for license plate detection.
+* **OpenCV preprocessing** to crop and enhance detected plates before OCR.
+* **Moondream VLM OCR API** for accurate plate number extraction.
+* **RapidAPI integration** for retrieving vehicle details (RTO, insurance, registration, etc.).
+* Lightweight **Flask web app** with a clean, modern UI.
+* Runs locally on **CPU-only setups** (not optimized for performance since OCR and vehicle info are handled via APIs).
 
 ---
 
-## Project Structure
+## **Tech Stack**
+
+* **Backend**: Python 3.12.10, Flask
+* **Detection**: YOLOv8n (`ultralytics==8.3.183`)
+* **Image Processing**: OpenCV
+* **OCR**: Moondream VLM API
+* **Vehicle Data**: [RapidAPI Vehicle Info](https://rapidapi.com/fire-api-fire-api-default/api/rto-vehicle-details-rc-puc-insurance-mparivahan)
+* **Frontend**: HTML, CSS, JavaScript (responsive design)
+
+---
+
+## **Project Structure**
 
 ```
 .
-├── input_images/         # Images to test
-├── cropped_images/       # Detected and cropped plates
-├── templates/            # HTML templates for Flask
-├── app.py                # Flask app entry point
-├── main.py               # Main script for detection and processing
-├── preprocess_plate.py   # Preprocessing and cropping logic
-├── ocr.py                # OCR integration with Moondream API
-├── api_call.py           # Calls RapidAPI to fetch vehicle details
-├── clear_images.py       # Clears old images before new runs
-├── best.pt               # Trained YOLOv8 model weights
-├── requirements.txt      # Dependencies
-├── setup.py              # Setup script
-├── .env                  # API keys and secrets
-├── .gitignore            # Git ignore file
+├── assets/                # Screenshots for README
+├── input_images/          # Input images for testing
+├── cropped_images/        # Detected and cropped plates
+├── templates/             # Frontend templates (index.html, scripts, styles)
+├── app.py                 # Flask app entry point
+├── main.py                # Core detection and OCR pipeline
+├── preprocess_plate.py    # Plate preprocessing & cropping logic
+├── ocr.py                 # OCR integration with Moondream API
+├── api_call.py            # RapidAPI vehicle info integration
+├── clear_images.py        # Utility to clear previous runs
+├── best.pt                # Custom-trained YOLOv8 model weights
+├── requirements.txt       # Python dependencies
+├── setup.py               # Setup script
+├── .env                   # API keys (not committed)
+└── .gitignore             # Ignore unnecessary files
 ```
 
 ---
 
-## Setup Instructions
+## **Setup and Installation**
 
-1. Clone this repository:
+### **1. Clone the Repository**
 
-   ```bash
-   git clone <your-repo-link>
-   cd <repo-name>
-   ```
+```bash
+git clone https://github.com/Abhay117004/PR.git
+cd PR
+```
 
-2. Create and activate a virtual environment:
+### **2. Create and Activate Virtual Environment**
 
-   ```bash
-   python -m venv plateenv
-   source plateenv/bin/activate   # Linux/Mac
-   plateenv/Scripts/activate      # Windows
-   ```
+**Linux / macOS**
 
-3. Install dependencies:
+```bash
+python -m venv plateenv
+source plateenv/bin/activate
+```
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+**Windows**
 
-4. Add your API keys in a `.env` file:
+```cmd
+python -m venv plateenv
+plateenv\Scripts\activate
+```
 
-   ```
-   OPENAI_API_KEY=your_moondream_key_here
-   RAPIDAPI_KEY=your_rapidapi_key_here
-   ```
+### **3. Install Dependencies**
 
-5. Run the app:
+```bash
+pip install -r requirements.txt
+```
 
-   ```bash
-   python app.py
-   ```
+### **4. Configure Environment**
 
-6. Open the app in your browser at `http://127.0.0.1:5000`.
+Create a `.env` file in the root directory:
 
----
-
-## Usage Flow
-
-1. Upload a vehicle image through the Flask app.
-2. YOLOv8 detects and draws a bounding box around the license plate.
-3. OpenCV preprocesses and crops the plate region.
-4. Moondream OCR extracts the text from the cropped plate image.
-5. The extracted plate number is sent to RapidAPI to fetch vehicle details.
-6. Results are displayed in the web app.
+```env
+OPENAI_API_KEY=your_moondream_key_here
+RAPIDAPI_KEY=your_rapidapi_key_here
+```
 
 ---
 
-## Notes
+## **Usage**
 
-* This project is intended for academic and research purposes.
-* Model weights (`best.pt`) are included here, but you can retrain on your own dataset.
-* You will need valid API keys for both Moondream OCR and RapidAPI to use the project.
+1. Start the Flask app:
+
+```bash
+python app.py
+```
+
+2. Open your browser and visit:
+
+```
+http://127.0.0.1:5000
+```
+
+3. Upload a vehicle image, click **Analyze Vehicle**, and view the results.
+
+![Results Page](assets/SS2.png)
+
+---
+
+## **Notes and Limitations**
+
+* **API Usage**: RapidAPI free tier is limited to **10 calls per month**.
+* **Hardware**: CPU-only supported; detection is slower than GPU setups but functional.
+* **Accuracy**: Works best with clear images where plates are unobstructed.
