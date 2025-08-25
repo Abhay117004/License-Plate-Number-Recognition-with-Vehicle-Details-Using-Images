@@ -1,6 +1,6 @@
 # VehicleLookup – License Plate Recognition (LPNR)
 
-![Homepage](assets/SS1.png)
+![Homepage](assets/LP.png)
 
 A License Plate Number Recognition (LPNR) system.
 It detects license plates from vehicle images, extracts the text using OCR, and retrieves detailed vehicle information through API integration — all via a simple browser-based interface.
@@ -34,6 +34,7 @@ It detects license plates from vehicle images, extracts the text using OCR, and 
 ```
 .
 ├── assets/                  # Screenshots or reference images for README
+│   └── LP.png               # Main screenshot used in README
 ├── input_images/            # Uploaded input images for testing
 ├── cropped_images/          # YOLO-detected and cropped plates
 ├── templates/               # Frontend templates (index.html, CSS, JS)
@@ -46,7 +47,7 @@ It detects license plates from vehicle images, extracts the text using OCR, and 
 ├── clear_images.py          # Utility to clear input and cropped images
 ├── best.pt                  # Custom-trained YOLOv8 model weights
 ├── requirements.txt         # Python dependencies
-├── env_setup.py             # Setup pipeline environment 
+├── env_setup.py             # Setup pipeline environment
 ├── .env                     # API keys (not committed to Git)
 └── .gitignore               # Ignore unnecessary files
 ```
@@ -110,8 +111,6 @@ http://127.0.0.1:5000
 ```
 
 3. Upload a vehicle image, click **Analyze Vehicle**, and view the results.
-
-![Results Page](assets/SS.png)
 
 ---
 
