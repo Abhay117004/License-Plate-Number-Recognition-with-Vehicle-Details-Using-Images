@@ -20,15 +20,23 @@ def extract_plates():
     model = genai.GenerativeModel('gemini-2.5-flash')
 
     prompt = """
-    You are a state-of-the-art AI Vehicle Recognition Specialist. Your very important task is to accurately detect, read, and normalize the alphanumeric text from a vehicle license plate in a given image. Follow the instructions carefully.
+    You are a state-of-the-art AI Vehicle Recognition Specialist. Your task is to accurately detect, read, and normalize the alphanumeric text from a vehicle license plate image.
 
     **Primary Objective:**
     - Extract the license plate text with zero extra spaces or garbage characters.
-    - Normalize the text to a standard, readable alphanumeric format (uppercase, no special symbols unless part of plate).
-    - Verify the plate against the most likely country format.
+    - Always normalize Indian plates:
+    - Convert any regional language text (e.g., Devanagari, Hindi, Marathi, etc.) into the standard Latin format.
+    - Replace the full state name (like "MAHARASHTRA") with its two-letter state code (e.g., "MH" for Maharashtra).
+    - Remove all spaces and non-alphanumeric symbols.
+    - Final format should look like `MH12GC2868`.
+
+    **Examples:**
+    - "महाराष्ट्र 12 जी सी 2868" → "MH12GC2868"
+    - "Delhi 5 AB 1234" → "DL5AB1234"
+    - "गुजरात 07 एचके 9087" → "GJ07HK9087"
 
     **Strict Output Instructions:**
-    - Respond ONLY with a JSON object matching the schema below. No extra text or commentary.
+    Respond ONLY with a JSON object:
     ```json
     {
     "plate_text_normalized": "string",
@@ -38,7 +46,6 @@ def extract_plates():
     "format_applied": "boolean",
     "notes": "string (for ambiguities or issues)"
     }
-
     """
 
     for cropped_path in glob.glob(os.path.join(cropped_images, "*")):
