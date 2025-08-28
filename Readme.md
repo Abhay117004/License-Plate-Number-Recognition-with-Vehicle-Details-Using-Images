@@ -1,6 +1,6 @@
 # VehicleLookup: AI-Powered License Plate Recognition
 
-![Homepage](assets/Webpage.png)
+![Homepage](assets/Homepage.png)
 
 VehicleLookup is a full-stack web application that uses computer vision and AI to recognize license plates from vehicle images. It detects the plate, extracts the registration number using Optical Character Recognition (OCR), and fetches official vehicle details from an external API, presenting the information in a clean, modern web interface.
 
