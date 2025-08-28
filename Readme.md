@@ -1,6 +1,6 @@
 # VehicleLookup – License Plate Recognition (LPNR)
 
-![Homepage](assets/LP.png)
+![Homepage](assets/Webpage.png)
 
 A License Plate Number Recognition (LPNR) system.
 It detects license plates from vehicle images, extracts the text using OCR, and retrieves detailed vehicle information through API integration — all via a simple browser-based interface.
@@ -11,7 +11,7 @@ It detects license plates from vehicle images, extracts the text using OCR, and 
 
 * **YOLOv8n** model custom-trained on the Indian Vehicle Dataset for license plate detection.
 * **OpenCV preprocessing** to crop and enhance detected plates before OCR.
-* **Gemini 2.5 Pro Model** for accurate plate number extraction.
+* **Gemini 2.5 Model** for accurate plate number extraction.
 * **RapidAPI integration** for retrieving vehicle details (RTO, insurance, registration, etc.).
 * Lightweight **Flask web app** with a clean, modern UI.
 * Runs locally on **CPU-only setups** (not optimized for performance since OCR and vehicle info are handled via APIs).
@@ -23,9 +23,9 @@ It detects license plates from vehicle images, extracts the text using OCR, and 
 * **Backend**: Python 3.12.10, Flask
 * **Detection**: [YOLOv8n](https://github.com/ultralytics) (`ultralytics==8.3.183`)
 * **Image Processing**: [OpenCV](https://opencv.org/)
-* **OCR**: [Gemini 2.5 Pro](https://aistudio.google.com/)
+* **OCR**: [Gemini 2.5](https://aistudio.google.com/)
 * **Vehicle Data**: [RapidAPI Vehicle Info](https://rapidapi.com/fire-api-fire-api-default/api/rto-vehicle-details-rc-puc-insurance-mparivahan)
-* **Frontend**: HTML, CSS, JavaScript (responsive design)
+* **Frontend**: HTML, Tailwing CSS, Javascript
 
 ---
 
@@ -34,15 +34,14 @@ It detects license plates from vehicle images, extracts the text using OCR, and 
 ```
 .
 ├── assets/                  # Screenshots or reference images for README
-│   └── LP.png               # Main screenshot used in README
+│   └── Webpage.png               # Main screenshot of the webpage
 ├── input_images/            # Uploaded input images for testing
 ├── cropped_images/          # YOLO-detected and cropped plates
 ├── templates/               # Frontend templates (index.html, CSS, JS)
-├── static/                  # Static assets like CSS/JS (optional, move from templates)
 ├── pipeline.py              # Runs the full OCR pipeline (setup → preprocess → OCR → API)
 ├── main.py                  # Flask web app / main entry point
 ├── preprocess_plate.py      # Plate preprocessing & cropping logic
-├── ocr.py                   # OCR integration using Gemini 2.5 Pro 
+├── ocr.py                   # OCR integration using Gemini 2.5 
 ├── api_call.py              # RapidAPI vehicle info integration
 ├── clear_images.py          # Utility to clear input and cropped images
 ├── best.pt                  # Custom-trained YOLOv8 model weights
