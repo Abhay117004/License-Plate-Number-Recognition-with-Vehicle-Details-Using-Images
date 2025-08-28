@@ -47,6 +47,25 @@ body::after {
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
 @keyframes toast-in { from { transform: translate(100%, -20px) scale(0.9); opacity: 0; } to { transform: translate(0, 0) scale(1); opacity: 1; } }
+
+/* --- ADD THESE NEW STYLES FOR TABS --- */
+/* Style for the active tab button */
+.active-tab {
+    color: #38bdf8 !important; /* sky-400 */
+    border-color: #38bdf8 !important;
+    background-color: rgba(56, 189, 248, 0.1);
+}
+
+/* Animation for tab content fading in */
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes toast-out { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(100%, -20px) scale(0.9); opacity: 0; } }
 @keyframes glow {
   0%, 100% { text-shadow: 0 0 15px rgba(56, 189, 248, 0.6), 0 0 30px rgba(99, 102, 241, 0.4), 0 0 45px rgba(56, 189, 248, 0.2); }
@@ -82,8 +101,8 @@ body::after {
 }
 
 /* FIXED: Only apply equal height to the main upload and results cards */
-.grid.lg\\:grid-cols-3 > .lg\\:col-span-1 > .card-fixed,
-.grid.lg\\:grid-cols-3 > .lg\\:col-span-2 > .card {
+.grid.lg\:grid-cols-3 > .lg\:col-span-1 > .card-fixed,
+.grid.lg\:grid-cols-3 > .lg\:col-span-2 > .card {
   min-height: 600px;
   display: flex;
   flex-direction: column;
@@ -305,8 +324,8 @@ footer {
 
 /* --- Responsive Design - Only affects main upload and results cards --- */
 @media (max-width: 1024px) {
-  .grid.lg\\:grid-cols-3 > .lg\\:col-span-1 > .card-fixed,
-  .grid.lg\\:grid-cols-3 > .lg\\:col-span-2 > .card {
+  .grid.lg\:grid-cols-3 > .lg\:col-span-1 > .card-fixed,
+  .grid.lg\:grid-cols-3 > .lg\:col-span-2 > .card {
     min-height: auto; /* Remove fixed height on smaller screens */
   }
   
@@ -326,8 +345,8 @@ footer {
   .card::after, .card-fixed::after { border-radius: 20px; }
   .tech-card:hover { transform: translateY(-6px) scale(1.02); }
   
-  .grid.lg\\:grid-cols-3 > .lg\\:col-span-1 > .card-fixed,
-  .grid.lg\\:grid-cols-3 > .lg\\:col-span-2 > .card {
+  .grid.lg\:grid-cols-3 > .lg\:col-span-1 > .card-fixed,
+  .grid.lg\:grid-cols-3 > .lg\:col-span-2 > .card {
     min-height: auto;
   }
   

@@ -36,24 +36,20 @@
       }
     }
   </script>
-  <!-- Make sure this points to your CSS file -->
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Helper class to make tech cards clickable without default link styles */
     .tech-card-link {
         text-decoration: none;
         color: inherit;
         display: block;
-        height: 100%; /* Ensures the link fills the parent grid cell */
+        height: 100%;
     }
   </style>
 </head>
 <body class="text-white antialiased">
-  <!-- Toast Container - Fixed positioning -->
   <div id="toast-container" class="toast-container"></div>
 
   <div class="content-wrapper">
-    <!-- Header -->
     <header class="sticky top-0 z-50 nav-gradient">
       <div class="container mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
@@ -83,7 +79,6 @@
     </header>
 
     <div class="container mx-auto px-6 py-12">
-      <!-- Hero Section -->
       <div class="text-center mb-10 mt-8">
         <div class="hero-badge animate-wave inline-flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-full mb-6">
           <i class="fa-solid fa-bolt"></i>
@@ -100,7 +95,6 @@
         </p>
       </div>
 
-      <!-- HOW IT WORKS -->
       <div class="card p-10 mb-12">
         <h3 class="text-2xl font-bold text-gray-100 mb-8 flex items-center gap-3">
           <i class="fa-solid fa-cogs text-sky-400 text-xl"></i>
@@ -137,12 +131,8 @@
         </div>
       </div>
 
-      <!-- Main Content Grid -->
-      <!-- CHANGE: `items-stretch` makes the grid cells equal height -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-stretch">
-        <!-- Left Panel - Upload -->
         <div class="lg:col-span-1">
-            <!-- CHANGE: Added `h-full` and flexbox to make the card fill the grid cell -->
           <div class="card-fixed p-10 h-full flex flex-col">
             <div class="flex items-center gap-4 mb-10">
               <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center">
@@ -186,54 +176,41 @@
           </div>
         </div>
 
-        <!-- Right Panel - Results -->
         <div class="lg:col-span-2">
-            <!-- CHANGE: Added `h-full` and flexbox to make the card fill the grid cell -->
-          <div class="card p-10 h-full flex flex-col">
-            <div class="flex items-center gap-4 mb-10">
-              <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center">
-                <i class="fa-solid fa-car-side text-xl"></i>
-              </div>
-              <div>
-                <h2 class="text-2xl font-bold text-gray-100">Vehicle Info</h2>
-                <p class="text-base text-gray-400">Comprehensive vehicle details</p>
-              </div>
-            </div>
-            
-            <div id="results-container" class="relative w-full flex-grow rounded-2xl overflow-hidden">
-              <div id="loader-overlay" class="hidden absolute inset-0 bg-black/50 backdrop-blur-sm items-center justify-center z-20 rounded-2xl">
-                <div class="text-center">
-                  <div class="loader-spinner mx-auto mb-8"></div>
-                  <div class="space-y-3">
-                    <p class="text-xl font-semibold text-gray-200">Analyzing image...</p>
-                    <p class="text-base text-gray-400">This may take a few seconds</p>
-                  </div>
+            <div class="card p-10 h-full flex flex-col">
+              <div class="flex items-center gap-4 mb-10">
+                <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center">
+                  <i class="fa-solid fa-car-side text-xl"></i>
+                </div>
+                <div>
+                  <h2 class="text-2xl font-bold text-gray-100">Vehicle Info</h2>
+                  <p class="text-base text-gray-400">Comprehensive vehicle details</p>
                 </div>
               </div>
-              <div id="results-content" class="h-full p-2 overflow-auto">
-                <div id="placeholder" class="flex flex-col items-center justify-center h-full text-center p-16">
-                  <div class="feature-icon w-40 h-40 rounded-3xl flex items-center justify-center mb-10 animate-pulse-slow">
-                    <i class="fa-solid fa-search text-6xl"></i>
-                  </div>
-                  <h3 class="text-3xl font-bold text-gray-200 mb-6">Ready to Analyze</h3>
-                  <p class="text-gray-400 max-w-md leading-relaxed text-lg">
-                    Upload a vehicle image and we'll tell you all about it.
-                  </p>
+              
+              <div id="results-container" class="relative w-full flex-grow rounded-2xl overflow-hidden">
+                <div id="loader-overlay" class="hidden absolute inset-0 bg-black/50 backdrop-blur-sm items-center justify-center z-20 rounded-2xl">
+                    <div class="text-center">
+                        <div class="loader-spinner mx-auto mb-8"></div>
+                        <div class="space-y-3">
+                          <p class="text-xl font-semibold text-gray-200">Analyzing image...</p>
+                          <p class="text-base text-gray-400">This may take a few seconds</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="results-content" class="h-full flex flex-col">
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Tech Stack Section -->
       <div class="mt-16 mb-8">
         <div class="text-center mb-12">
           <h3 class="text-3xl font-bold text-white mb-4">Technologies Used</h3>
           <p class="text-gray-300 max-w-2xl mx-auto">Built with the following pattern recognition and computer vision technologies.</p>
         </div>
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- CHANGE: Wrapped cards in <a> tags -->
           <a href="https://github.com/ultralytics" target="_blank" rel="noopener noreferrer" class="tech-card-link">
             <div class="tech-card p-6 text-center group h-full">
               <div class="feature-icon w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
@@ -258,7 +235,7 @@
                 <i class="fa-solid fa-font text-2xl"></i>
               </div>
               <h4 class="font-bold text-gray-200 text-lg mb-2">Gemini 2.5</h4>
-              <p class="text-sm text-gray-400">High-accuracy MLLM Model</p>
+              <p class="text-sm text-gray-400">High-accuracy OCR</p>
             </div>
           </a>
           <a href="https://rapidapi.com/fire-api-fire-api-default/api/rto-vehicle-details-rc-puc-insurance-mparivahan/playground/apiendpoint_859d8858-fa99-44a0-a74e-126c6c876c5b" target="_blank" rel="noopener noreferrer" class="tech-card-link">
@@ -274,7 +251,6 @@
       </div>
     </div>
 
-    <!-- Enhanced Footer -->
     <footer>
       <div class="container mx-auto px-6">
         <div class="text-center mb-12">

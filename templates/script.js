@@ -9,8 +9,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clear-btn');
     const loaderOverlay = document.getElementById('loader-overlay');
     const resultsContent = document.getElementById('results-content');
-    const placeholder = document.getElementById('placeholder');
     const toastContainer = document.getElementById('toast-container');
+
+    // Placeholder HTML is stored to be reused
+    const placeholderHTML = `
+        <div id="placeholder" class="flex flex-col items-center justify-center h-full text-center p-16">
+            <div class="feature-icon w-40 h-40 rounded-3xl flex items-center justify-center mb-10 animate-pulse-slow">
+                <i class="fa-solid fa-search text-6xl"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-200 mb-6">Ready to Analyze</h3>
+            <p class="text-gray-400 max-w-md leading-relaxed text-lg">
+                Upload a vehicle image and we'll tell you all about it.
+            </p>
+        </div>`;
+    
+    resultsContent.innerHTML = placeholderHTML;
 
     // State Variables
     let currentFile = null;
@@ -22,24 +35,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let iconClass, title;
 
         switch (type) {
-            case 'success':
-                iconClass = 'fa-solid fa-check-circle';
-                title = 'Success';
-                break;
-            case 'error':
-                iconClass = 'fa-solid fa-times-circle';
-                title = 'Error';
-                break;
-            default:
-                iconClass = 'fa-solid fa-info-circle';
-                title = 'Info';
+            case 'success': iconClass = 'fa-solid fa-check-circle'; title = 'Success'; break;
+            case 'error': iconClass = 'fa-solid fa-times-circle'; title = 'Error'; break;
+            default: iconClass = 'fa-solid fa-info-circle'; title = 'Info';
         }
 
         toast.className = `toast text-white p-5 rounded-xl shadow-lg flex items-start gap-4 backdrop-blur-md`;
         toast.innerHTML = `
-            <div class="shrink-0 pt-1">
-                <i class="${iconClass} text-2xl"></i>
-            </div>
+            <div class="shrink-0 pt-1"><i class="${iconClass} text-2xl"></i></div>
             <div class="flex-1 min-w-0">
                 <h4 class="font-bold text-lg mb-1">${title}</h4>
                 <p class="text-base toast-message break-words">${message}</p>
@@ -49,24 +52,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toastContainer.appendChild(toast);
         toast.classList.add('toast-in');
-
         const closeBtn = toast.querySelector('.toast-close');
         closeBtn.addEventListener('click', () => removeToast(toast));
-
         setTimeout(() => removeToast(toast), 6000);
     }
 
     function removeToast(toast) {
         if (toast.parentElement) {
             toast.classList.add('toast-out');
-            toast.addEventListener('animationend', () => {
-                if (toast.parentElement) {
-                    toast.parentElement.removeChild(toast);
-                }
-            });
+            toast.addEventListener('animationend', () => toast.parentElement?.removeChild(toast));
         }
     }
-
 
     // --- File Handling Functions ---
     function handleFile(file) {
@@ -74,12 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Please select a valid image file (PNG, JPG, WEBP).', 'error');
             return;
         }
-
-        if (file.size > 10 * 1024 * 1024) { // 10MB limit
-            showToast('File size must be less than 10MB.', 'error');
-            return;
-        }
-
         currentFile = file;
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -87,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadInstructions.classList.add('hidden');
             imagePreviewContainer.classList.remove('hidden');
             ocrBtn.disabled = false;
-            lastUploadedFilename = null; // Force re-upload if a new file is selected
+            lastUploadedFilename = null;
             showToast('Image loaded! Ready to analyze.', 'success');
         };
         reader.readAsDataURL(file);
@@ -95,13 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- UI State Management ---
     function setLoadingState(isLoading) {
-        if (isLoading) {
-            loaderOverlay.classList.remove('hidden');
-            loaderOverlay.classList.add('flex');
-        } else {
-            loaderOverlay.classList.add('hidden');
-            loaderOverlay.classList.remove('flex');
-        }
+        loaderOverlay.classList.toggle('hidden', !isLoading);
+        loaderOverlay.classList.toggle('flex', isLoading);
         ocrBtn.disabled = isLoading;
         clearBtn.disabled = isLoading;
     }
@@ -114,8 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         imagePreviewContainer.classList.add('hidden');
         imagePreview.src = '#';
         ocrBtn.disabled = true;
-        resultsContent.innerHTML = '';
-        resultsContent.appendChild(placeholder);
+        resultsContent.innerHTML = placeholderHTML;
         
         fetch('/clear-images', { method: 'POST' })
          .then(res => res.json())
@@ -123,248 +107,193 @@ document.addEventListener('DOMContentLoaded', () => {
          .catch(() => showToast('Failed to clear server images.', 'error'));
     }
 
-    // --- Data Processing Utilities ---
-    function safeParseJSON(str) {
-        try { return JSON.parse(str); } catch { return null; }
-    }
+    // --- Results Rendering with TABS ---
+    function renderResults(results) {
+        resultsContent.innerHTML = ''; // Clear placeholder
 
-    function extractJsonFromMessage(msg) {
-        if (!msg || typeof msg !== 'string') return null;
-        const first = msg.indexOf('{');
-        const last = msg.lastIndexOf('}');
-        if (first === -1 || last === -1 || last < first) return null;
-        const slice = msg.slice(first, last + 1).trim();
-        return safeParseJSON(slice);
-    }
-
-    function normalizeDetails(payload) {
-        if (!payload) return {};
-        if (payload.rc_vehicle_no || payload.rc_version) return payload;
-        if (payload.result && payload.result.extraction_output) return payload.result.extraction_output;
-        if (payload.data && (payload.data.rc_vehicle_no || payload.data.rc_version)) return payload.data;
-        return payload;
-    }
-
-    // --- Results Rendering ---
-    function renderResults(data) {
-        let plate = 'N/A';
-        let details = {};
-        let rawForDisplay = '';
-
-        if (data && typeof data === 'object' && !('message' in data)) {
-            details = normalizeDetails(data);
-            rawForDisplay = JSON.stringify(data, null, 2);
+        if (!results || results.length === 0) {
+            resultsContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full text-center p-12">
+                    <div class="feature-icon w-20 h-20 rounded-full flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-question-circle text-yellow-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-100 mb-2">No Details Found</h3>
+                    <p class="text-gray-400">Could not retrieve information for any detected plates.</p>
+                </div>`;
         } else {
-            const msg = typeof data?.message === 'string' ? data.message : '';
-            rawForDisplay = msg || '';
-            if (msg) {
-                const plateMatch = msg.match(/[A-Z]{2}[ -]?[0-9]{1,2}[ -]?[A-Z]{1,3}[ -]?[0-9]{1,4}/);
-                if (plateMatch) plate = plateMatch[0].replace(/\s+/g, '');
-                const extracted = extractJsonFromMessage(msg);
-                if (extracted) details = normalizeDetails(extracted);
-            }
+            // Create tab navigation and content containers
+            const tabNav = document.createElement('div');
+            tabNav.className = 'flex border-b border-gray-700/50 space-x-1 flex-wrap';
+
+            const tabContentContainer = document.createElement('div');
+            tabContentContainer.className = 'flex-grow p-1 relative overflow-auto';
+
+            results.forEach((vehicleData, index) => {
+                const plate = vehicleData.plate_number_queried || `Result ${index + 1}`;
+                const button = document.createElement('button');
+                button.className = 'px-6 py-3 font-semibold text-gray-400 border-b-2 border-transparent hover:text-white hover:bg-white/5 transition-all duration-300 rounded-t-lg';
+                button.textContent = plate;
+                button.dataset.tab = `tab-${index}`;
+                tabNav.appendChild(button);
+
+                const content = document.createElement('div');
+                content.id = `tab-${index}`;
+                content.className = 'tab-content hidden';
+                content.innerHTML = createVehicleDetailHTML(vehicleData);
+                tabContentContainer.appendChild(content);
+
+                if (index === 0) {
+                    button.classList.add('active-tab');
+                    content.classList.remove('hidden');
+                }
+            });
+
+            resultsContent.appendChild(tabNav);
+            resultsContent.appendChild(tabContentContainer);
+
+            // Add event listener for tab switching
+            tabNav.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    const tabId = e.target.dataset.tab;
+                    tabNav.querySelectorAll('button').forEach(btn => btn.classList.remove('active-tab'));
+                    tabContentContainer.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+                    e.target.classList.add('active-tab');
+                    const activeContent = document.getElementById(tabId);
+                    activeContent.classList.remove('hidden');
+                    activeContent.querySelector('.toggle-raw-response')?.addEventListener('click', toggleRawResponse);
+                }
+            });
+            document.querySelector('.tab-content:not(.hidden) .toggle-raw-response')?.addEventListener('click', toggleRawResponse);
+        }
+    }
+
+    function createVehicleDetailHTML(data) {
+        if (!data || typeof data !== 'object') {
+            return `<div class="p-8 text-center text-red-400">Invalid data format received.</div>`;
+        }
+        if (data.error) {
+            return `
+                <div class="p-8 text-center">
+                    <h3 class="text-lg font-bold text-red-400 mb-2">API Error</h3>
+                    <p class="text-gray-300">Could not retrieve details for plate: <strong>${data.plate_number_queried || 'Unknown'}</strong></p>
+                    <p class="text-sm text-gray-500 mt-2">Reason: ${data.error}</p>
+                </div>`;
         }
 
-        plate = details.rc_vehicle_no || plate || 'N/A';
-
         const out = {
-            plate: plate || 'N/A',
-            owner: details.rc_owner_name || details.owner_name || 'N/A',
-            makeModel: [details.rc_maker_desc, details.rc_maker_model].filter(Boolean).join(' ') || details.manufacturer_model || 'N/A',
-            colour: details.colour || details.rc_color || 'N/A',
-            fuel: details.rc_fuel_desc || details.fuel_type || 'N/A',
-            regDate: details.rc_regn_dt || details.registration_date || 'N/A',
-            insuranceUntil: details.rc_insurance_upto || details.insurance_validity || 'N/A',
-            registeredAt: details.rc_registered_at || details.registered_place || 'N/A',
-            status: details.rc_status || details.status_verification || 'N/A',
-            statusAsOn: details.rc_status_as_on || null
+            plate: data.plate_number_queried || 'N/A',
+            owner: data.rc_owner_name || 'N/A',
+            makeModel: [data.rc_maker_desc, data.rc_maker_model].filter(Boolean).join(' ') || 'N/A',
+            fuel: data.rc_fuel_desc || 'N/A',
+            regDate: data.rc_regn_dt || 'N/A',
+            insuranceUntil: data.rc_insurance_upto || 'N/A',
+            registeredAt: data.rc_registered_at || 'N/A',
         };
+        const rawForDisplay = JSON.stringify(data, null, 2);
 
-        const outputHTML = `
-            <div class="p-6 h-full">
-                <!-- Vehicle Summary Card -->
-                <div class="card p-8 mb-6">
-                    <h3 class="text-2xl font-bold text-blue-400 mb-6 border-b pb-2 border-blue-500/30">Vehicle Summary</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        ${createDetailRow('Plate Number', out.plate, false, 'text-xl font-bold text-gray-100')}
-                        ${createDetailRow('Owner Name', out.owner)}
-                        ${createDetailRow('Make & Model', out.makeModel)}
-                        ${createDetailRow('Fuel Type', out.fuel)}
-                        ${createDetailRow('Registration', out.regDate)}
-                        ${createDetailRow('Insurance Until', out.insuranceUntil)}
-                        ${createDetailRow('Registered At', out.registeredAt)}
-                        ${out.statusAsOn ? createDetailRow('Status As On', out.statusAsOn) : ''}
-                    </div>
+        return `
+            <div class="p-4 h-full animate-fadeIn">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    ${createDetailRow('Plate Number', out.plate, 'text-xl font-bold text-gray-100')}
+                    ${createDetailRow('Owner Name', out.owner)}
+                    ${createDetailRow('Make & Model', out.makeModel)}
+                    ${createDetailRow('Fuel Type', out.fuel)}
+                    ${createDetailRow('Registration Date', out.regDate)}
+                    ${createDetailRow('Insurance Valid Until', out.insuranceUntil)}
+                    ${createDetailRow('Registered At', out.registeredAt)}
                 </div>
-                
-                <!-- Collapsible Terminal Response -->
-                <div class="card">
-                    <button id="toggle-terminal" class="w-full flex items-center justify-between p-6 hover:bg-white/5 transition-colors rounded-t-xl border-b border-blue-500/30">
-                        <div class="flex items-center gap-3">
-                            <div class="feature-icon w-10 h-10 rounded-lg flex items-center justify-center">
-                                <i class="fa-solid fa-terminal"></i>
-                            </div>
-                            <div class="text-left">
-                                <h4 class="text-lg font-semibold text-gray-100">Terminal Response</h4>
-                                <p class="text-sm text-gray-400">View raw API response data</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span id="toggle-text" class="text-sm text-gray-300 font-medium">Show Details</span>
-                            <i id="toggle-icon" class="fa-solid fa-chevron-down text-gray-500 transition-transform duration-300"></i>
-                        </div>
+                <div class="card mt-6">
+                    <button class="toggle-raw-response w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors rounded-t-xl border-b border-blue-500/30">
+                        <h4 class="text-md font-semibold text-gray-100">Raw API Response</h4>
+                        <i class="fa-solid fa-chevron-down text-gray-500 transition-transform duration-300"></i>
                     </button>
-                    <div id="terminal-content" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
-                        <div class="p-6 pt-0">
-                            <pre class="whitespace-pre-wrap text-xs text-gray-300 bg-black/50 p-6 rounded-xl border border-blue-500/30 leading-relaxed font-mono max-h-[500px] overflow-auto">${rawForDisplay || 'No response data.'}</pre>
-                        </div>
+                    <div class="raw-response-content max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                        <pre class="whitespace-pre-wrap text-xs text-gray-300 bg-black/50 p-4 rounded-b-xl font-mono max-h-[300px] overflow-auto">${rawForDisplay}</pre>
                     </div>
                 </div>
             </div>`;
-        
-        resultsContent.innerHTML = outputHTML;
-        document.getElementById('toggle-terminal').addEventListener('click', toggleTerminalResponse);
     }
 
-    function createDetailRow(label, value, isStatus = false, valueClass = '') {
-        const val = (value ?? 'N/A');
-        const valStr = typeof val === 'string' ? val : JSON.stringify(val);
+    function createDetailRow(label, value, valueClass = '') {
         return `
             <div class="flex justify-between items-center py-2 border-b border-gray-700/50">
                 <span class="font-medium text-gray-400">${label}:</span>
-                <span class="font-semibold text-gray-200 text-right ${valueClass}">${valStr || 'N/A'}</span>
+                <span class="font-semibold text-gray-200 text-right ${valueClass}">${value || 'N/A'}</span>
             </div>`;
     }
 
-    // --- Terminal Response Toggle Function ---
-    function toggleTerminalResponse() {
-        const content = document.getElementById('terminal-content');
-        const toggleText = document.getElementById('toggle-text');
-        const toggleIcon = document.getElementById('toggle-icon');
-
-        if (!content) return;
-
+    function toggleRawResponse(event) {
+        const button = event.currentTarget;
+        const content = button.nextElementSibling;
+        const icon = button.querySelector('i');
         if (content.classList.contains('max-h-0')) {
             content.classList.remove('max-h-0');
-            content.classList.add('max-h-[600px]');
-            toggleText && (toggleText.textContent = 'Hide Details');
-            toggleIcon && toggleIcon.classList.add('rotate-180');
+            content.classList.add('max-h-[400px]');
+            icon.classList.add('rotate-180');
         } else {
-            content.classList.remove('max-h-[600px]');
+            content.classList.remove('max-h-[400px]');
             content.classList.add('max-h-0');
-            toggleText && (toggleText.textContent = 'Show Details');
-            toggleIcon && toggleIcon.classList.remove('rotate-180');
+            icon.classList.remove('rotate-180');
         }
     }
 
     // --- Event Listeners ---
-    imageInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) handleFile(file);
-    });
-
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('drag-over');
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('drag-over');
-    });
-
+    imageInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.classList.remove('drag-over');
-        const file = e.dataTransfer.files && e.dataTransfer.files[0];
-        if (file) handleFile(file);
+        handleFile(e.dataTransfer.files[0]);
     });
-
     clearBtn.addEventListener('click', resetUI);
 
     ocrBtn.addEventListener('click', async () => {
-        if (!currentFile) {
-            showToast('No file selected for analysis.', 'error');
-            return;
-        }
-        
+        if (!currentFile) { showToast('No file selected.', 'error'); return; }
         setLoadingState(true);
         resultsContent.innerHTML = '';
         
         try {
-            // Step 1: Upload image if it's a new file
+            // Step 1: Upload the image if it's a new one
             if (lastUploadedFilename !== currentFile.name) {
                 const formData = new FormData();
                 formData.append('image', currentFile);
-                
-                const uploadResponse = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
+                const uploadResponse = await fetch('/upload', { method: 'POST', body: formData });
                 if (!uploadResponse.ok) {
-                    throw new Error('Image upload failed. Please try again.');
+                    const errData = await uploadResponse.json();
+                    throw new Error(errData.error || 'Image upload failed.');
                 }
-                
-                const uploadData = await uploadResponse.json();
-                showToast(uploadData.message || 'Image uploaded successfully.', 'info');
                 lastUploadedFilename = currentFile.name;
             }
             
-            // Step 2: Run OCR analysis
-            const ocrResponse = await fetch('/run-ocr', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            // Step 2: Run the OCR and API pipeline
+            const ocrResponse = await fetch('/run-ocr', { method: 'POST' });
             
+            // FIX: Check if the server responded with an error status code
             if (!ocrResponse.ok) {
-                throw new Error('Analysis failed on the server. Please try again.');
+                const errorData = await ocrResponse.json();
+                throw new Error(errorData.error || `Server responded with status: ${ocrResponse.status}`);
             }
+
+            // If the response is OK, parse the JSON
+            const responseData = await ocrResponse.json();
             
-            const ocrData = await ocrResponse.json();
-            renderResults(ocrData);
-            showToast('Analysis completed successfully!', 'success');
+            renderResults(responseData);
+            showToast('Analysis complete!', 'success');
             
         } catch (error) {
             console.error('Analysis error:', error);
+            showToast(error.message, 'error');
             resultsContent.innerHTML = `
                 <div class="flex flex-col items-center justify-center h-full text-center p-12">
-                    <div class="feature-icon w-20 h-20 rounded-full flex items-center justify-center mb-6">
-                        <i class="fa-solid fa-exclamation-triangle text-red-400 text-3xl"></i>
+                    <div class="feature-icon w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-red-500/20 text-red-400">
+                        <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-100 mb-2">Analysis Failed</h3>
-                    <p class="text-gray-400 mb-4">${error.message}</p>
-                    <button id="retry-btn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                        Try Again
-                    </button>
+                    <p class="text-gray-400">${error.message}</p>
                 </div>`;
-            document.getElementById('retry-btn').addEventListener('click', () => ocrBtn.click());
-            showToast(error.message || 'An unknown error occurred.', 'error');
         } finally {
             setLoadingState(false);
-        }
-    });
-
-    // --- Keyboard shortcuts ---
-    document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey || e.metaKey) {
-            switch(e.key) {
-                case 'u':
-                    e.preventDefault();
-                    imageInput.click();
-                    break;
-                case 'Enter':
-                    if (!ocrBtn.disabled) {
-                        e.preventDefault();
-                        ocrBtn.click();
-                    }
-                    break;
-                case 'Backspace':
-                    if (currentFile) {
-                        e.preventDefault();
-                        resetUI();
-                    }
-                    break;
-            }
         }
     });
 });

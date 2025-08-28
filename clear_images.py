@@ -2,7 +2,7 @@ import os
 
 
 def clear_images():
-    folders = ["input_images", "cropped_images"]
+    folders = ["input_images", "cropped_images", "ocr_results", "api_results"]
     for folder in folders:
         if os.path.exists(folder):
             for file in os.listdir(folder):

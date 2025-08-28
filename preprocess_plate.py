@@ -1,26 +1,40 @@
 import os
 import cv2
 import glob
-from env_setup import model, input_folder, cropped_images
+from env_setup import model, input_folder, cropped_images, device
 
+print("Starting plate preprocessing...")
 
-def preprocess_plate(image):
-    enhanced = cv2.convertScaleAbs(image, alpha=1.2, beta=10)
-    return enhanced
+image_paths = glob.glob(os.path.join(input_folder, "*"))
+if not image_paths:
+    print("No images found in input_folder.")
+else:
+    for image_path in image_paths:
+        print(f"Processing image: {image_path}")
+        image = cv2.imread(image_path)
+        if image is None:
+            print(f"Warning: Could not read image {image_path}. Skipping.")
+            continue
 
+        results = model(image, verbose=False, device=device)
 
-for image_path in glob.glob(os.path.join(input_folder, "*")):
-    image = cv2.imread(image_path)
-    results = model(image, verbose=False)
-    base_name = os.path.splitext(os.path.basename(image_path))[0]
+        base_name = os.path.splitext(os.path.basename(image_path))[0]
 
-    for idx, box in enumerate(results[0].boxes):
-        x1, y1, x2, y2 = map(int, box.xyxy[0])
-        cropped = image[y1:y2, x1:x2]
-        cropped = preprocess_plate(cropped)
-        cropped_path = os.path.join(
-            cropped_images, f"{base_name}_plate_{idx}.jpg")
-        cv2.imwrite(cropped_path, cropped)
-        print(f"Saved cropped plate in --> {cropped_path}")
+        if not results[0].boxes:
+            print(
+                f"No license plates detected in {os.path.basename(image_path)}.")
+            continue
+
+        for idx, box in enumerate(results[0].boxes):
+            coords = box.xyxy[0].tolist()
+            x1, y1, x2, y2 = map(int, coords)
+
+            cropped_plate = image[y1:y2, x1:x2]
+
+            save_path = os.path.join(
+                cropped_images, f"{base_name}_plate_{idx}.jpg")
+
+            cv2.imwrite(save_path, cropped_plate)
+            print(f"Saved cropped plate to {save_path}")
 
 print("Preprocess Done")

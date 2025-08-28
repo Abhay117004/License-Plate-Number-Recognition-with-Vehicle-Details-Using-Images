@@ -12,3 +12,5 @@ yolov8n.pt
 .idea/
 .env
 yolov8n.pt
+ocr_results/
+api_results/
