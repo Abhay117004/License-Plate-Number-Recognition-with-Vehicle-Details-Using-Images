@@ -1,6 +1,9 @@
-import os
 from ultralytics import YOLO
-from openai import OpenAI
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 input_folder = "input_images"
 cropped_images = "cropped_images"
@@ -10,8 +13,8 @@ device = "cpu"
 
 model = YOLO("best.pt")
 
-MOONDREAM_API_KEY = os.getenv("MOONDREAM_API_KEY")
-client = OpenAI(api_key=MOONDREAM_API_KEY,
-                base_url="https://api.moondream.ai/v1")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY environment variable not set.")
 
 print("Setup Done")

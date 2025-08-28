@@ -3,3 +3,4 @@ opencv-python
 ultralytics
 openai
 python-dotenv
+google-generativeai
