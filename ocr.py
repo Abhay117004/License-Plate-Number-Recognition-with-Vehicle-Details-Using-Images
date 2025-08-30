@@ -17,7 +17,7 @@ def extract_plates():
     os.makedirs(OCR_RESULTS_DIR, exist_ok=True)
 
     print("OCR Started: Creating individual JSON files for each plate.")
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-pro')
 
     prompt = """
     You are a state-of-the-art AI Vehicle Recognition Specialist. Your task is to accurately detect, read, and normalize the alphanumeric text from a vehicle license plate image.
