@@ -35,7 +35,7 @@ The application follows a four-stage pipeline orchestrated by `pipeline.py`:
 | **Frontend**      | HTML, Tailwind CSS, JavaScript                                                                                   |
 | **Detection**     | **YOLOv8** (`ultralytics`) custom-trained on an Indian license plate dataset.                                      |
 | **Image Processing**| **OpenCV** for image manipulation and cropping.                                                                  |
-| **OCR**           | **Google Gemini Pro Vision API** for high-accuracy text extraction.                                                |
+| **OCR**           | **Google Gemini API** for high-accuracy text extraction.                                                |
 | **Vehicle Data**  | **RapidAPI** ([RTO Vehicle Details](https://rapidapi.com/ITTechs/api/vehicle-rc-verification-advance)) |
 | **Environment**   | `python-dotenv` for managing API keys.                                                                           |
 
