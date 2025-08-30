@@ -11,7 +11,7 @@ os.makedirs(cropped_images, exist_ok=True)
 
 device = "cpu"
 
-model = YOLO("bestx.pt")
+model = YOLO("best.pt")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
