@@ -9,19 +9,21 @@ API_RESULTS_DIR = 'api_results'
 
 
 def get_vehicle_details(plate_number):
-    """Fetches vehicle details for a given plate number from RapidAPI."""
+    """Fetches vehicle details for a given plate number using the new POST API."""
     if not RAPIDAPI_KEY:
         return {"error": "RAPIDAPI_KEY not configured."}
 
-    url = "https://rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com/api/rc-vehicle/search-data"
-    querystring = {"vehicle_no": plate_number}
+    url = "https://vehicle-rc-verification-advance.p.rapidapi.com/Getrcfulldetails"
     headers = {
         "x-rapidapi-key": RAPIDAPI_KEY,
-        "x-rapidapi-host": "rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com"
+        "x-rapidapi-host": "vehicle-rc-verification-advance.p.rapidapi.com",
+        "Content-Type": "application/json"
     }
+    payload = {"rcnumber": plate_number}
+
     try:
-        response = requests.get(url, headers=headers,
-                                params=querystring, timeout=15)
+        response = requests.post(url, headers=headers,
+                                 json=payload, timeout=15)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -31,7 +33,7 @@ def get_vehicle_details(plate_number):
 
 
 if __name__ == "__main__":
-    print("Fetching vehicle details from GET API...")
+    print("Fetching vehicle details from new POST API...")
     os.makedirs(API_RESULTS_DIR, exist_ok=True)
 
     ocr_files = glob.glob(os.path.join(OCR_RESULTS_DIR, "*.json"))
