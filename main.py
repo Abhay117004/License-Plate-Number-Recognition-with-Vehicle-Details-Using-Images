@@ -93,7 +93,6 @@ def clear_images_route():
 
 
 if __name__ == '__main__':
-    # This check prevents the browser from opening on every reload
     if not os.environ.get("WERKZEUG_RUN_MAIN"):
         webbrowser.open('http://127.0.0.1:5000')
     app.run(debug=True, use_reloader=True)
