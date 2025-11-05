@@ -3,10 +3,9 @@ import glob
 import json
 from PIL import Image
 import google.generativeai as genai
-from env_setup import cropped_images, GEMINI_API_KEY
 import sys
 
-OCR_RESULTS_DIR = 'ocr_results'
+from env_setup import cropped_images, GEMINI_API_KEY, ocr_results_folder
 
 
 def extract_plates(base_filename=None):
@@ -14,11 +13,9 @@ def extract_plates(base_filename=None):
         print("Error: GEMINI_API_KEY not configured. OCR cannot proceed.")
         return
     genai.configure(api_key=GEMINI_API_KEY)
-
-    os.makedirs(OCR_RESULTS_DIR, exist_ok=True)
-
     print("OCR Started: Creating individual JSON files for each plate.")
-    model = genai.GenerativeModel('gemini-2.5-pro')
+
+    model = genai.GenerativeModel('gemini-1.5-pro-latest')
 
     prompt = """
     You are a state-of-the-art AI Vehicle Recognition Specialist. Your task is to accurately detect, read, and normalize the alphanumeric text from a vehicle license plate image.
@@ -52,10 +49,19 @@ def extract_plates(base_filename=None):
     if base_filename:
         search_pattern = os.path.join(cropped_images, f"{base_filename}*")
     else:
-        search_pattern = os.path.join(cropped_images, "*")
+        print("Error: No base filename provided to ocr.py")
+        return
 
-    for cropped_path in glob.glob(search_pattern):
+    print(f"OCR searching for cropped plates at: {search_pattern}")
+    cropped_files = glob.glob(search_pattern)
+
+    if not cropped_files:
+        print("No cropped plates found to process.")
+        return
+
+    for cropped_path in cropped_files:
         base_name = os.path.splitext(os.path.basename(cropped_path))[0]
+        print(f"Processing OCR for: {base_name}")
         try:
             img = Image.open(cropped_path)
             response = model.generate_content([prompt, img])
@@ -66,7 +72,7 @@ def extract_plates(base_filename=None):
 
             if plate_text != "NOT_FOUND" and result.get("is_readable", False):
                 output_path = os.path.join(
-                    OCR_RESULTS_DIR, f"{base_name}.json")
+                    ocr_results_folder, f"{base_name}.json")
                 with open(output_path, 'w') as f:
                     json.dump(result, f, indent=2)
                 print(f"Saved OCR result for {base_name} to {output_path}")
@@ -76,6 +82,8 @@ def extract_plates(base_filename=None):
 
         except Exception as e:
             print(f"Could not process {base_name}: {e}")
+            print(
+                f"Response text that caused error: {response.text if 'response' in locals() else 'N/A'}")
 
     print("OCR Done")
 
@@ -85,5 +93,4 @@ if __name__ == "__main__":
         base_filename_arg = sys.argv[1]
         extract_plates(base_filename_arg)
     else:
-        # Fallback for direct execution
         extract_plates()

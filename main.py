@@ -3,24 +3,23 @@ import sys
 import json
 import glob
 import shutil
-import webbrowser
 import subprocess
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from werkzeug.utils import secure_filename
 
-# Vercel has a read-only filesystem, except for the /tmp directory.
-# We will use the /tmp directory for all file operations.
-BASE_DIR = '/tmp'
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'input_images')
-CROPPED_FOLDER = os.path.join(BASE_DIR, 'cropped_images')
-OCR_RESULTS_DIR = os.path.join(BASE_DIR, 'ocr_results')
-API_RESULTS_DIR = os.path.join(BASE_DIR, 'api_results')
+try:
+    from env_setup import (
+        input_folder,
+        cropped_images,
+        ocr_results_folder,
+        api_results_folder
+    )
+except ImportError as e:
+    print(f"CRITICAL: Failed to import env_setup. {e}")
+    sys.exit(1)
 
-# Ensure the app object is discoverable by Vercel's WSGI server
+
 app = Flask(__name__)
-
-for folder in [UPLOAD_FOLDER, CROPPED_FOLDER, OCR_RESULTS_DIR, API_RESULTS_DIR]:
-    os.makedirs(folder, exist_ok=True)
 
 
 @app.route('/')
@@ -38,9 +37,6 @@ def serve_js():
     return send_from_directory('templates', 'script.js')
 
 
-# Use a session or a global variable to store the filename.
-# For a production app with multiple users, a session is better.
-# For this simple case, a global variable is sufficient.
 last_uploaded_filename = None
 
 
@@ -54,9 +50,11 @@ def upload_image():
         return jsonify({'error': 'No image selected for uploading'}), 400
     if file:
         filename = secure_filename(file.filename)
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        # Use the imported path
+        file_path = os.path.join(input_folder, filename)
         file.save(file_path)
-        # Store the base name of the file, without extension
+        print(f"Image saved to: {file_path}")
+
         last_uploaded_filename = os.path.splitext(filename)[0]
         return jsonify({'message': f'Image {filename} uploaded successfully.'}), 200
     return jsonify({'error': 'Unknown error during upload'}), 500
@@ -65,7 +63,10 @@ def upload_image():
 @app.route('/run-ocr', methods=['POST'])
 def run_ocr():
     if not last_uploaded_filename:
+        print("Error: /run-ocr called but last_uploaded_filename is not set.")
         return jsonify({"error": "No image has been uploaded yet."}), 400
+
+    print(f"Running pipeline for: {last_uploaded_filename}")
     try:
         # Pass the base filename to the pipeline
         result = subprocess.run(
@@ -77,18 +78,27 @@ def run_ocr():
             print("Pipeline STDERR:", result.stderr)
 
         all_details = []
-        # Look for results specific to this run
-        if os.path.exists(API_RESULTS_DIR):
-            for filename in glob.glob(os.path.join(API_RESULTS_DIR, f"{last_uploaded_filename}*.json")):
-                with open(filename, 'r') as f:
-                    all_details.append(json.load(f))
+        # Look for results in the correct directory
+        search_path = os.path.join(
+            api_results_folder, f"{last_uploaded_filename}*.json")
+        print(f"Searching for results in: {search_path}")
 
+        result_files = glob.glob(search_path)
+        if not result_files:
+            print("No API result JSON files found.")
+            return jsonify({"error": "No vehicle details found."}), 200
+
+        for filename in result_files:
+            with open(filename, 'r') as f:
+                all_details.append(json.load(f))
+
+        print(f"Found {len(all_details)} result(s).")
         return jsonify(all_details)
 
     except subprocess.CalledProcessError as e:
         log_output = e.stdout + "\n" + e.stderr
         print(f"Error during pipeline execution: {log_output}")
-        return jsonify({"error": "Failed to process image."}), 500
+        return jsonify({"error": "Failed to process image.", "log": log_output}), 500
     except Exception as e:
         print(f"An error occurred in /run-ocr: {e}")
         return jsonify({"error": str(e)}), 500
@@ -96,18 +106,26 @@ def run_ocr():
 
 @app.route('/clear-images', methods=['POST'])
 def clear_images_route():
+    print("Clear route triggered.")
     try:
-        folders_to_clear = [UPLOAD_FOLDER, CROPPED_FOLDER,
-                            OCR_RESULTS_DIR, API_RESULTS_DIR]
+        # Use the imported path variables
+        folders_to_clear = [input_folder, cropped_images,
+                            ocr_results_folder, api_results_folder]
+
         for folder in folders_to_clear:
             if os.path.exists(folder):
+                print(f"Clearing folder: {folder}")
                 shutil.rmtree(folder)
                 os.makedirs(folder)
+
+        global last_uploaded_filename
+        last_uploaded_filename = None
+
         return jsonify({'message': 'Cleared all temporary images and results successfully'}), 200
     except Exception as e:
+        print(f"Error clearing images: {e}")
         return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':
-    # The host must be set to '0.0.0.0' to be accessible from outside the container
     app.run(host='0.0.0.0', port=5000, debug=False)

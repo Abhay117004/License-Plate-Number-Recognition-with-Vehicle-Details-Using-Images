@@ -1,24 +1,27 @@
 import os
 import cv2
 import glob
-from env_setup import model, input_folder, cropped_images, device
-
 import sys
+
+from env_setup import model, input_folder, cropped_images, device
 
 print("Starting plate preprocessing...")
 
-# Accept a base filename from command-line arguments
+if not model:
+    print("CRITICAL: YOLO model not loaded. Exiting preprocess script.")
+    sys.exit(1)
+
 if len(sys.argv) > 1:
     base_filename_arg = sys.argv[1]
-    # Construct the full path for the specific image to process
-    image_paths = glob.glob(os.path.join(
-        input_folder, f"{base_filename_arg}.*"))
+    search_pattern = os.path.join(input_folder, f"{base_filename_arg}.*")
+    image_paths = glob.glob(search_pattern)
+    print(f"Searching for: {search_pattern}")
 else:
-    # Fallback to original behavior if no argument is given
-    image_paths = glob.glob(os.path.join(input_folder, "*"))
+    print("Error: No base filename provided to preprocess_plate.py.")
+    sys.exit(1)
 
 if not image_paths:
-    print(f"No images found matching '{base_filename_arg}' in input_folder.")
+    print(f"No images found matching '{base_filename_arg}' in {input_folder}.")
 else:
     for image_path in image_paths:
         print(f"Processing image: {image_path}")
@@ -28,7 +31,6 @@ else:
             continue
 
         results = model(image, verbose=False, device=device)
-
         base_name = os.path.splitext(os.path.basename(image_path))[0]
 
         if not results[0].boxes:
@@ -39,7 +41,6 @@ else:
         for idx, box in enumerate(results[0].boxes):
             coords = box.xyxy[0].tolist()
             x1, y1, x2, y2 = map(int, coords)
-
             cropped_plate = image[y1:y2, x1:x2]
 
             save_path = os.path.join(

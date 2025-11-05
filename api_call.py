@@ -3,23 +3,18 @@ import glob
 import json
 import requests
 import sys
-from env_setup import RAPIDAPI_KEY
 
-OCR_RESULTS_DIR = 'ocr_results'
-API_RESULTS_DIR = 'api_results'
+from env_setup import RAPIDAPI_KEY, ocr_results_folder, api_results_folder
 
 
 def get_vehicle_details(plate_number):
     """Fetches vehicle details for a given plate number using the new POST API."""
-    # Prefer configured key from env_setup, fallback to the key provided in the
-    # example snippet if not present.
-    api_key = RAPIDAPI_KEY or "935854549emsh35ddace65ebc8b7p13d261jsn96a7f03f9794"
-
+    api_key = RAPIDAPI_KEY
     if not api_key:
+        print("Error: RAPIDAPI_KEY not configured.")
         return {"error": "RAPIDAPI_KEY not configured."}
 
-    # New GET-based RapidAPI endpoint (uses query param vehicle_no)
-    url = "https://rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com/api/rc-vehicle/search-data"
+    url = "[https://rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com/api/rc-vehicle/search-data](https://rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com/api/rc-vehicle/search-data)"
     headers = {
         "x-rapidapi-key": api_key,
         "x-rapidapi-host": "rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com"
@@ -32,24 +27,25 @@ def get_vehicle_details(plate_number):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
+        print(f"API Request failed: {e}")
         return {"error": str(e)}
     except json.JSONDecodeError:
+        print(f"API response was not valid JSON: {response.text}")
         return {"error": "Invalid API response", "raw": response.text}
 
 
 if __name__ == "__main__":
     print("Fetching vehicle details from API...")
-    os.makedirs(API_RESULTS_DIR, exist_ok=True)
 
     base_filename = None
     if len(sys.argv) > 1:
         base_filename = sys.argv[1]
-
-    if base_filename:
-        search_pattern = os.path.join(
-            OCR_RESULTS_DIR, f"{base_filename}*.json")
     else:
-        search_pattern = os.path.join(OCR_RESULTS_DIR, "*.json")
+        print("Error: No base filename provided to api_call.py")
+        sys.exit(1)
+
+    search_pattern = os.path.join(ocr_results_folder, f"{base_filename}*.json")
+    print(f"API_CALL searching for OCR results at: {search_pattern}")
 
     ocr_files = glob.glob(search_pattern)
 
@@ -72,7 +68,7 @@ if __name__ == "__main__":
                 details['plate_number_queried'] = plate_number
 
                 output_path = os.path.join(
-                    API_RESULTS_DIR, f"{base_name}.json")
+                    api_results_folder, f"{base_name}.json")
                 with open(output_path, 'w') as f:
                     json.dump(details, f, indent=2)
                 print(f"Saved API result for {plate_number} to {output_path}")
