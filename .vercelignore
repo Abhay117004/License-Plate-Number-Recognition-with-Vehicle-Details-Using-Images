@@ -1,0 +1,24 @@
+# Vercel Ignore
+
+# Local environment
+plateenv/
+.env
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Large datasets and models that should be hosted elsewhere or are for training only
+Dataset/
+*.pt
+*.pth
+
+# Local results and runs
+/runs/
+/input_images/
+/cropped_images/
+/ocr_results/
+/api_results/
+
+# Node modules if you have any frontend tooling
+node_modules/

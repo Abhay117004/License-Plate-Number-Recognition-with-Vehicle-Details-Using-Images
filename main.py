@@ -8,13 +8,16 @@ import subprocess
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__)
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Vercel has a read-only filesystem, except for the /tmp directory.
+# We will use the /tmp directory for all file operations.
+BASE_DIR = '/tmp'
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'input_images')
 CROPPED_FOLDER = os.path.join(BASE_DIR, 'cropped_images')
 OCR_RESULTS_DIR = os.path.join(BASE_DIR, 'ocr_results')
 API_RESULTS_DIR = os.path.join(BASE_DIR, 'api_results')
+
+# Ensure the app object is discoverable by Vercel's WSGI server
+app = Flask(__name__)
 
 for folder in [UPLOAD_FOLDER, CROPPED_FOLDER, OCR_RESULTS_DIR, API_RESULTS_DIR]:
     os.makedirs(folder, exist_ok=True)
@@ -22,17 +25,22 @@ for folder in [UPLOAD_FOLDER, CROPPED_FOLDER, OCR_RESULTS_DIR, API_RESULTS_DIR]:
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # Adjust template path for Vercel environment
+    template_path = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), 'templates', 'index.html')
+    return render_template(template_path)
 
 
 @app.route('/styles.css')
 def serve_css():
-    return send_from_directory('templates', 'styles.css')
+    # Adjust static file path for Vercel environment
+    return send_from_directory(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'), 'styles.css')
 
 
 @app.route('/script.js')
 def serve_js():
-    return send_from_directory('templates', 'script.js')
+    # Adjust static file path for Vercel environment
+    return send_from_directory(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'), 'script.js')
 
 
 @app.route('/upload', methods=['POST'])
