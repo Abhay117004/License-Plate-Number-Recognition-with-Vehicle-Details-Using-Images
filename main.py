@@ -101,6 +101,5 @@ def clear_images_route():
 
 
 if __name__ == '__main__':
-    if not os.environ.get("WERKZEUG_RUN_MAIN"):
-        webbrowser.open('http://127.0.0.1:5000')
-    app.run(debug=True, use_reloader=True)
+    # The host must be set to '0.0.0.0' to be accessible from outside the container
+    app.run(host='0.0.0.0', port=5000, debug=False)
