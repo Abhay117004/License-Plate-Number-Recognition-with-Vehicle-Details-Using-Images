@@ -1,4 +1,4 @@
-# ([VehicleLookup](https://license-plate-number-recognition-with.onrender.com)): AI-Powered License Plate Recognition
+# [VehicleLookup](https://license-plate-number-recognition-with.onrender.com): AI-Powered License Plate Recognition
 
 ![Homepage](assets/Homepage.png)
 
