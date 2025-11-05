@@ -3,11 +3,22 @@ import cv2
 import glob
 from env_setup import model, input_folder, cropped_images, device
 
+import sys
+
 print("Starting plate preprocessing...")
 
-image_paths = glob.glob(os.path.join(input_folder, "*"))
+# Accept a base filename from command-line arguments
+if len(sys.argv) > 1:
+    base_filename_arg = sys.argv[1]
+    # Construct the full path for the specific image to process
+    image_paths = glob.glob(os.path.join(
+        input_folder, f"{base_filename_arg}.*"))
+else:
+    # Fallback to original behavior if no argument is given
+    image_paths = glob.glob(os.path.join(input_folder, "*"))
+
 if not image_paths:
-    print("No images found in input_folder.")
+    print(f"No images found matching '{base_filename_arg}' in input_folder.")
 else:
     for image_path in image_paths:
         print(f"Processing image: {image_path}")

@@ -38,8 +38,15 @@ def serve_js():
     return send_from_directory('templates', 'script.js')
 
 
+# Use a session or a global variable to store the filename.
+# For a production app with multiple users, a session is better.
+# For this simple case, a global variable is sufficient.
+last_uploaded_filename = None
+
+
 @app.route('/upload', methods=['POST'])
 def upload_image():
+    global last_uploaded_filename
     if 'image' not in request.files:
         return jsonify({'error': 'No image part in the request'}), 400
     file = request.files['image']
@@ -49,15 +56,20 @@ def upload_image():
         filename = secure_filename(file.filename)
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(file_path)
+        # Store the base name of the file, without extension
+        last_uploaded_filename = os.path.splitext(filename)[0]
         return jsonify({'message': f'Image {filename} uploaded successfully.'}), 200
     return jsonify({'error': 'Unknown error during upload'}), 500
 
 
 @app.route('/run-ocr', methods=['POST'])
 def run_ocr():
+    if not last_uploaded_filename:
+        return jsonify({"error": "No image has been uploaded yet."}), 400
     try:
+        # Pass the base filename to the pipeline
         result = subprocess.run(
-            [sys.executable, 'pipeline.py'],
+            [sys.executable, 'pipeline.py', last_uploaded_filename],
             capture_output=True, text=True, check=True, encoding='utf-8'
         )
         print("Pipeline STDOUT:", result.stdout)
@@ -65,8 +77,9 @@ def run_ocr():
             print("Pipeline STDERR:", result.stderr)
 
         all_details = []
+        # Look for results specific to this run
         if os.path.exists(API_RESULTS_DIR):
-            for filename in glob.glob(os.path.join(API_RESULTS_DIR, "*.json")):
+            for filename in glob.glob(os.path.join(API_RESULTS_DIR, f"{last_uploaded_filename}*.json")):
                 with open(filename, 'r') as f:
                     all_details.append(json.load(f))
 

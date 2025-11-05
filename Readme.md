@@ -16,6 +16,14 @@ VehicleLookup is a full-stack web application that uses computer vision and AI t
 
 ---
 
+## Live Demo
+
+This project is deployed and live on Render. You can try it out here:
+
+**[https://license-plate-number-recognition-with.onrender.com/](https://license-plate-number-recognition-with.onrender.com/)**
+
+---
+
 ## How It Works: The Processing Pipeline
 
 The application follows a four-stage pipeline orchestrated by `pipeline.py`:
@@ -27,12 +35,22 @@ The application follows a four-stage pipeline orchestrated by `pipeline.py`:
 
 ---
 
+## Deployment
+
+This application is containerized using **Docker** and deployed on **Render**.
+
+*   **Containerization**: The `Dockerfile` in the root directory defines the environment, installs all dependencies (including large ML libraries like PyTorch and OpenCV), and configures the application to run with a Flask development server.
+*   **Hosting**: Render automatically builds the Docker image from the `Dockerfile` and deploys it as a Web Service. This approach solves the size limitations of serverless platforms and provides a robust, scalable hosting solution.
+
+---
+
 ## Tech Stack
 
 | Category          | Technology / Service                                                                                             |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **Backend**       | Python, Flask                                                                                                    |
 | **Frontend**      | HTML, Tailwind CSS, JavaScript                                                                                   |
+| **Deployment**    | **Docker**, **Render**                                                                                           |
 | **Detection**     | **YOLOv8** (`ultralytics`) custom-trained on an Indian license plate dataset.                                      |
 | **Image Processing**| **OpenCV** for image manipulation and cropping.                                                                  |
 | **OCR**           | **Google Gemini API** for high-accuracy text extraction.                                                |
@@ -45,6 +63,7 @@ The application follows a four-stage pipeline orchestrated by `pipeline.py`:
 
 ```
 .
+├── Dockerfile               # Defines the container for deployment
 ├── assets/                  # Screenshots for README
 ├── input_images/            # Stores images uploaded by the user
 ├── cropped_images/          # Stores cropped license plates from YOLO detection

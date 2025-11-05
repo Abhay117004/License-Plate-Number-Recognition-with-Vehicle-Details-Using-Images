@@ -4,11 +4,12 @@ import json
 from PIL import Image
 import google.generativeai as genai
 from env_setup import cropped_images, GEMINI_API_KEY
+import sys
 
 OCR_RESULTS_DIR = 'ocr_results'
 
 
-def extract_plates():
+def extract_plates(base_filename=None):
     if not GEMINI_API_KEY:
         print("Error: GEMINI_API_KEY not configured. OCR cannot proceed.")
         return
@@ -48,7 +49,12 @@ def extract_plates():
     }
     """
 
-    for cropped_path in glob.glob(os.path.join(cropped_images, "*")):
+    if base_filename:
+        search_pattern = os.path.join(cropped_images, f"{base_filename}*")
+    else:
+        search_pattern = os.path.join(cropped_images, "*")
+
+    for cropped_path in glob.glob(search_pattern):
         base_name = os.path.splitext(os.path.basename(cropped_path))[0]
         try:
             img = Image.open(cropped_path)
@@ -75,4 +81,9 @@ def extract_plates():
 
 
 if __name__ == "__main__":
-    extract_plates()
+    if len(sys.argv) > 1:
+        base_filename_arg = sys.argv[1]
+        extract_plates(base_filename_arg)
+    else:
+        # Fallback for direct execution
+        extract_plates()

@@ -2,6 +2,7 @@ import os
 import glob
 import json
 import requests
+import sys
 from env_setup import RAPIDAPI_KEY
 
 OCR_RESULTS_DIR = 'ocr_results'
@@ -37,10 +38,20 @@ def get_vehicle_details(plate_number):
 
 
 if __name__ == "__main__":
-    print("Fetching vehicle details from new POST API...")
+    print("Fetching vehicle details from API...")
     os.makedirs(API_RESULTS_DIR, exist_ok=True)
 
-    ocr_files = glob.glob(os.path.join(OCR_RESULTS_DIR, "*.json"))
+    base_filename = None
+    if len(sys.argv) > 1:
+        base_filename = sys.argv[1]
+
+    if base_filename:
+        search_pattern = os.path.join(
+            OCR_RESULTS_DIR, f"{base_filename}*.json")
+    else:
+        search_pattern = os.path.join(OCR_RESULTS_DIR, "*.json")
+
+    ocr_files = glob.glob(search_pattern)
 
     if not ocr_files:
         print("No OCR result files found to process.")
