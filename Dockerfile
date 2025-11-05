@@ -21,6 +21,5 @@ EXPOSE 5000
 # Define environment variable for the port (good practice for hosting platforms)
 ENV PORT 5000
 
-# Run main.py when the container launches using a production-ready server (gunicorn)
-# The command binds the server to all network interfaces on the specified port.
-CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "main:app"]
+# Run main.py when the container launches using the Flask development server.
+CMD ["python", "main.py"]
