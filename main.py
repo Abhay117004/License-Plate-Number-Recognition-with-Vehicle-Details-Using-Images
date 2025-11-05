@@ -25,22 +25,17 @@ for folder in [UPLOAD_FOLDER, CROPPED_FOLDER, OCR_RESULTS_DIR, API_RESULTS_DIR]:
 
 @app.route('/')
 def home():
-    # Adjust template path for Vercel environment
-    template_path = os.path.join(os.path.dirname(
-        os.path.abspath(__file__)), 'templates', 'index.html')
-    return render_template(template_path)
+    return render_template('index.html')
 
 
 @app.route('/styles.css')
 def serve_css():
-    # Adjust static file path for Vercel environment
-    return send_from_directory(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'), 'styles.css')
+    return send_from_directory('templates', 'styles.css')
 
 
 @app.route('/script.js')
 def serve_js():
-    # Adjust static file path for Vercel environment
-    return send_from_directory(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'), 'script.js')
+    return send_from_directory('templates', 'script.js')
 
 
 @app.route('/upload', methods=['POST'])
