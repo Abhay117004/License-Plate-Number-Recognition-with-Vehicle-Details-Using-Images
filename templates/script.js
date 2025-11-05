@@ -165,22 +165,23 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         }
 
-        // ✅ new API format
-        const extraction = data.result?.extraction_output || {};
-
+        // ✅ MODIFICATION: Updated to match the new flat API format
+        // const extraction = data.result?.extraction_output || {}; // <-- Old nested format
+        
         const details = {
             plate_number_queried: data.plate_number_queried || 'N/A',
-            owner_name: extraction.owner_name || 'N/A',
-            manufacturer: extraction.manufacturer || 'N/A',
-            manufacturer_model: extraction.manufacturer_model || 'N/A',
-            fuel_type: extraction.fuel_type || 'N/A',
-            registration_date: extraction.registration_date || 'N/A',
-            insurance_validity: extraction.insurance_validity || 'N/A',
-            registered_place: extraction.registered_place || 'N/A',
-            vehicle_class: extraction.vehicle_class || 'N/A',
-            chassis_number: extraction.chassis_number || 'N/A',
-            engine_number: extraction.engine_number || 'N/A'
+            owner_name: data.rc_owner_name || 'N/A',
+            manufacturer: data.rc_maker_desc || 'N/A',
+            manufacturer_model: data.rc_maker_model || 'N/A',
+            fuel_type: data.rc_fuel_desc || 'N/A',
+            registration_date: data.rc_regn_dt || 'N/A',
+            insurance_validity: data.rc_insurance_upto || 'N/A',
+            registered_place: data.rc_registered_at || 'N/A',
+            vehicle_class: data.rc_vh_class_desc || 'N/A',
+            chassis_number: data.rc_chasi_no || 'N/A',
+            engine_number: data.rc_eng_no || 'N/A'
         };
+        // ✅ END OF MODIFICATION
 
         const rawForDisplay = JSON.stringify(data,null,2);
 
@@ -210,9 +211,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createDetailRow(label,value,valueClass=''){
+        // Helper to format dates if they match the expected format
+        let displayValue = value || 'N/A';
+        if (typeof displayValue === 'string') {
+            // Check for format '03/02/2024 00:00:00' or '02/28/2027 00:00:00'
+            const match = displayValue.match(/^(\d{2})\/(\d{2})\/(\d{4}) \d{2}:\d{2}:\d{2}$/);
+            if (match) {
+                // Reformat to MM/DD/YYYY
+                displayValue = `${match[1]}/${match[2]}/${match[3]}`;
+            }
+            // Check for '02-Mar-2039'
+            else if (displayValue.match(/^\d{2}-[A-Za-z]{3}-\d{4}$/)) {
+                 // Keep as is, it's readable
+                 displayValue = displayValue;
+            }
+        }
+
         return `<div class="flex justify-between items-center py-2 border-b border-gray-700/50">
             <span class="font-medium text-gray-400">${label}:</span>
-            <span class="font-semibold text-gray-200 text-right ${valueClass}">${value||'N/A'}</span>
+            <span class="font-semibold text-gray-200 text-right ${valueClass}">${displayValue}</span>
         </div>`;
     }
 

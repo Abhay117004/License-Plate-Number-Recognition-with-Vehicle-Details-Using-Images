@@ -10,20 +10,24 @@ API_RESULTS_DIR = 'api_results'
 
 def get_vehicle_details(plate_number):
     """Fetches vehicle details for a given plate number using the new POST API."""
-    if not RAPIDAPI_KEY:
+    # Prefer configured key from env_setup, fallback to the key provided in the
+    # example snippet if not present.
+    api_key = RAPIDAPI_KEY or "935854549emsh35ddace65ebc8b7p13d261jsn96a7f03f9794"
+
+    if not api_key:
         return {"error": "RAPIDAPI_KEY not configured."}
 
-    url = "https://vehicle-rc-verification-advance.p.rapidapi.com/Getrcfulldetails"
+    # New GET-based RapidAPI endpoint (uses query param vehicle_no)
+    url = "https://rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com/api/rc-vehicle/search-data"
     headers = {
-        "x-rapidapi-key": RAPIDAPI_KEY,
-        "x-rapidapi-host": "vehicle-rc-verification-advance.p.rapidapi.com",
-        "Content-Type": "application/json"
+        "x-rapidapi-key": api_key,
+        "x-rapidapi-host": "rto-vehicle-details-rc-puc-insurance-mparivahan.p.rapidapi.com"
     }
-    payload = {"rcnumber": plate_number}
+    params = {"vehicle_no": plate_number}
 
     try:
-        response = requests.post(url, headers=headers,
-                                 json=payload, timeout=15)
+        response = requests.get(url, headers=headers,
+                                params=params, timeout=15)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
