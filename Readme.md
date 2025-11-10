@@ -1,4 +1,4 @@
-# [VehicleLookup](https://license-plate-number-recognition-with.onrender.com): AI-Powered License Plate Recognition
+# [VehicleLookup]: AI-Powered License Plate Recognition
 
 ![Homepage](assets/Homepage.png)
 
@@ -13,14 +13,6 @@ VehicleLookup is a full-stack web application that uses computer vision and AI t
 *   **Detailed Vehicle Information**: Retrieves comprehensive data including owner name, make/model, fuel type, registration date, and insurance validity.
 *   **Real-time Processing Log**: An optional, collapsible terminal view on the frontend shows the real-time status of the backend pipeline for debugging and transparency.
 *   **Error Handling**: Gracefully handles API errors, unreadable plates, and processing failures, providing clear feedback to the user.
-
----
-
-## Live Demo
-
-This project is deployed and live on Render. You can try it out here:
-
-**[https://license-plate-number-recognition-with.onrender.com/](https://license-plate-number-recognition-with.onrender.com/)**
 
 ---
 
